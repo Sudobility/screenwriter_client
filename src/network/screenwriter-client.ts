@@ -304,6 +304,10 @@ import {
   type WorkspaceActivityEvent,
   type WorkspaceActivityQuery,
 } from "@sudobility/screenwriter_types";
+import type { CharacterImageResult, CharacterLooksRequest, CharacterSheetRequest } from "@sudobility/screenwriter_types";
+import type { LocationImageTime, LocationLooksRequest, LocationLooksResult, LocationTimesRequest, LocationTimesResult } from "@sudobility/screenwriter_types";
+import type { PropImageResult, PropLooksRequest, PropSheetRequest } from "@sudobility/screenwriter_types";
+import type { ProductionImageKind, ProductionImageRequest, ProductionImageResult, GeneratedImageCount } from "@sudobility/screenwriter_types";
 import type { DocumentJSON, TemplateJSON } from "@sudobility/writing_core";
 import {
   ApiError,
@@ -562,6 +566,65 @@ export function newWritingSessionId(): string {
  * Which method serves which `API_ROUTES` entry is declared in `API_ROUTE_METHODS` (checked by a test).
  */
 export class ScreenwriterClient {
+  countGeneratedImages(projectId: string): Promise<GeneratedImageCount> {
+    return this.json("GET", `/projects/${enc(projectId)}/generated-images`);
+  }
+
+  generateProductionImage(did: string, kind: ProductionImageKind, subjectId: string, request: ProductionImageRequest): Promise<ProductionImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/production-images/${kind}/${enc(subjectId)}`, undefined, request);
+  }
+
+  async getProductionImage(did: string, kind: ProductionImageKind, subjectId: string, imageId: string): Promise<Uint8Array> {
+    const res = await this.send("GET", `/documents/${enc(did)}/ai/production-images/${kind}/${enc(subjectId)}/${enc(imageId)}`);
+    if (res.status < 200 || res.status >= 300) this.fail(res);
+    return res.body;
+  }
+
+  deleteProductionImage(did: string, kind: ProductionImageKind, subjectId: string, imageId: string): Promise<{ deleted: boolean }> {
+    return this.json("DELETE", `/documents/${enc(did)}/ai/production-images/${kind}/${enc(subjectId)}/${enc(imageId)}`);
+  }
+
+  generatePropLooks(did: string, propId: string, request: PropLooksRequest): Promise<PropImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/props/${enc(propId)}/looks`, undefined, request);
+  }
+
+  generatePropSheet(did: string, propId: string, request: PropSheetRequest): Promise<PropImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/props/${enc(propId)}/sheet`, undefined, request);
+  }
+
+  async getPropImage(did: string, propId: string, kind: "looks" | "sheet", imageId: string): Promise<Uint8Array> {
+    const res = await this.send("GET", `/documents/${enc(did)}/ai/props/${enc(propId)}/images/${kind}/${enc(imageId)}`);
+    if (res.status < 200 || res.status >= 300) this.fail(res);
+    return res.body;
+  }
+
+  generateLocationLooks(did: string, locationId: string, request: LocationLooksRequest): Promise<LocationLooksResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/looks`, undefined, request);
+  }
+
+  generateLocationTimes(did: string, locationId: string, request: LocationTimesRequest): Promise<LocationTimesResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/times`, undefined, request);
+  }
+
+  async getLocationImage(did: string, locationId: string, kind: "looks" | LocationImageTime, imageId: string): Promise<Uint8Array> {
+    const res = await this.send("GET", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/images/${kind}/${enc(imageId)}`);
+    if (res.status < 200 || res.status >= 300) this.fail(res);
+    return res.body;
+  }
+
+  generateCharacterLooks(did: string, characterId: string, request: CharacterLooksRequest): Promise<CharacterImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/characters/${enc(characterId)}/looks`, undefined, request);
+  }
+
+  generateCharacterSheet(did: string, characterId: string, request: CharacterSheetRequest): Promise<CharacterImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/characters/${enc(characterId)}/sheet`, undefined, request);
+  }
+
+  async getCharacterImage(did: string, characterId: string, kind: "looks" | "sheet", imageId: string): Promise<Uint8Array> {
+    const res = await this.send("GET", `/documents/${enc(did)}/ai/characters/${enc(characterId)}/images/${kind}/${enc(imageId)}`);
+    if (res.status < 200 || res.status >= 300) this.fail(res);
+    return res.body;
+  }
   /** Unlock-session tokens by document id, sent as `X-Doc-Unlock` on that document's routes (spec 05 §6.7). */
   private readonly unlockTokens = new Map<string, string>();
 

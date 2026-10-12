@@ -5,7 +5,7 @@
     "": {
       "name": "@sudobility/screenwriter_client",
       "dependencies": {
-        "@sudobility/screenwriter_types": "^0.1.9",
+        "@sudobility/screenwriter_types": "^0.1.10",
         "@sudobility/writing_core": "^0.1.3",
         "yjs": "^13.6.32",
       },
@@ -180,7 +180,7 @@
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
-    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.9", "", { "dependencies": { "@sudobility/types": "^1.9.68", "@sudobility/writing_core": "^0.1.3", "lib0": "0.2.117", "zod": "^4.6.5" } }, "sha512-bgRN0yiUkpO/f3e/ngGdRXw2gij27y27JwqXLiOgUWuESNVrbarm3+08Qy/VjOm+zrVQfIMv+wtIh88wKH+dHg=="],
+    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.10", "", { "dependencies": { "@sudobility/types": "^1.9.68", "@sudobility/writing_core": "^0.1.3", "lib0": "0.2.117", "zod": "^4.6.5" } }, "sha512-Ycq2lNgboeGHlRQ3/mqSvymB9c2pVxd/u8Iy9cEPXVPeog2/CKJdqno3MHOWExAlGlZ+OEAWs6rBPYEHXuCVgg=="],
 
     "@sudobility/types": ["@sudobility/types@1.9.68", "", {}, "sha512-4LL5+UfcqQcc0PKKR/z/PqS6j9DQPVkkjL+3oOW+Bwx0TAu1SVKAlPhlt/9ruNMW+abcHuZoFvbOVD5gdYBSGw=="],
 
