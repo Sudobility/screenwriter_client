@@ -584,12 +584,21 @@ export class ScreenwriterClient {
     return this.json("DELETE", `/documents/${enc(did)}/ai/production-images/${kind}/${enc(subjectId)}/${enc(imageId)}`);
   }
 
+  /** Upload a user-supplied PNG (base64 data URL) instead of generating one; returns the id the visual state references. */
+  uploadProductionImage(did: string, kind: ProductionImageKind, subjectId: string, image: string): Promise<ProductionImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/production-images/${kind}/${enc(subjectId)}/upload`, undefined, { image });
+  }
+
   generatePropLooks(did: string, propId: string, request: PropLooksRequest): Promise<PropImageResult> {
     return this.json("POST", `/documents/${enc(did)}/ai/props/${enc(propId)}/looks`, undefined, request);
   }
 
   generatePropSheet(did: string, propId: string, request: PropSheetRequest): Promise<PropImageResult> {
     return this.json("POST", `/documents/${enc(did)}/ai/props/${enc(propId)}/sheet`, undefined, request);
+  }
+
+  uploadPropImage(did: string, propId: string, kind: "looks" | "sheet", image: string): Promise<PropImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/props/${enc(propId)}/upload/${kind}`, undefined, { image });
   }
 
   async getPropImage(did: string, propId: string, kind: "looks" | "sheet", imageId: string): Promise<Uint8Array> {
@@ -606,6 +615,10 @@ export class ScreenwriterClient {
     return this.json("POST", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/times`, undefined, request);
   }
 
+  uploadLocationImage(did: string, locationId: string, kind: "looks" | LocationImageTime, image: string): Promise<{ id: string; kind: "looks" | LocationImageTime; mimeType: "image/png" }> {
+    return this.json("POST", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/upload/${kind}`, undefined, { image });
+  }
+
   async getLocationImage(did: string, locationId: string, kind: "looks" | LocationImageTime, imageId: string): Promise<Uint8Array> {
     const res = await this.send("GET", `/documents/${enc(did)}/ai/locations/${enc(locationId)}/images/${kind}/${enc(imageId)}`);
     if (res.status < 200 || res.status >= 300) this.fail(res);
@@ -618,6 +631,10 @@ export class ScreenwriterClient {
 
   generateCharacterSheet(did: string, characterId: string, request: CharacterSheetRequest): Promise<CharacterImageResult> {
     return this.json("POST", `/documents/${enc(did)}/ai/characters/${enc(characterId)}/sheet`, undefined, request);
+  }
+
+  uploadCharacterImage(did: string, characterId: string, kind: "looks" | "sheet", image: string): Promise<CharacterImageResult> {
+    return this.json("POST", `/documents/${enc(did)}/ai/characters/${enc(characterId)}/upload/${kind}`, undefined, { image });
   }
 
   async getCharacterImage(did: string, characterId: string, kind: "looks" | "sheet", imageId: string): Promise<Uint8Array> {
