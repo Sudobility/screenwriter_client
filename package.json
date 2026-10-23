@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/screenwriter_client",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Network client, react-query hooks and Yjs sync client for Fadewright",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,10 +20,13 @@
     "build": "vite build && tsc -p tsconfig.build.json",
     "clean": "rimraf dist"
   },
-  "files": ["dist/**/*", "CLAUDE.md"],
+  "files": [
+    "dist/**/*",
+    "CLAUDE.md"
+  ],
   "dependencies": {
-    "@sudobility/screenwriter_types": "^0.1.12",
-    "@sudobility/writing_core": "^0.1.4",
+    "@sudobility/screenwriter_types": "^0.1.13",
+    "@sudobility/writing_core": "^0.1.5",
     "yjs": "^13.6.32"
   },
   "peerDependencies": {
@@ -45,10 +48,10 @@
     "vitest": "^4.0.4"
   },
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/johnqh/screenwriter_client.git"
+    "url": "https://github.com/Sudobility/screenwriter_client.git"
   }
 }
