@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/screenwriter_client",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "Network client, react-query hooks and Yjs sync client for Fadewright",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@sudobility/screenwriter_types": "^0.1.14",
-    "@sudobility/writing_core": "^0.1.5",
+    "@sudobility/writing_core": "^0.1.6",
     "yjs": "~13.6.33"
   },
   "peerDependencies": {

@@ -6,7 +6,7 @@
       "name": "@sudobility/screenwriter_client",
       "dependencies": {
         "@sudobility/screenwriter_types": "^0.1.14",
-        "@sudobility/writing_core": "^0.1.5",
+        "@sudobility/writing_core": "^0.1.6",
         "yjs": "~13.6.33",
       },
       "devDependencies": {
@@ -184,7 +184,7 @@
 
     "@sudobility/types": ["@sudobility/types@1.9.76", "https://npm.pkg.github.com/download/@sudobility/types/1.9.76/71635156f72fd9461107d5f147b3dc1c49f863d0", {}, "sha512-b7maZHR5wM84VlQ+l9R+2guzSOrExog6OUNy1oCe7h0abW13syycmnLQL0g+qql0aQ84qTB4A0mJelhY3Vef4Q=="],
 
-    "@sudobility/writing_core": ["@sudobility/writing_core@0.1.5", "https://npm.pkg.github.com/download/@sudobility/writing_core/0.1.5/2739aff4e05af1fc916dd37fd2b7f1fb8bb0daa9", { "dependencies": { "@noble/hashes": "^2.4.0", "harfbuzzjs": "1.6.1", "yjs": "^13.6.32", "zod": "^4.6.5" } }, "sha512-5aMyW/HJFWv5JOtdfzTACL3G6Xq8TzswuMBqWaEBTT/VUnaTxvdamsmMMJydcyeGz+iTQvrgoQ1B//Gn95gDkg=="],
+    "@sudobility/writing_core": ["@sudobility/writing_core@0.1.6", "https://npm.pkg.github.com/download/@sudobility/writing_core/0.1.6/e55777a47ea4c2abcbf1a953b92185eebdff9a5b", { "dependencies": { "@noble/hashes": "~2.4.0", "harfbuzzjs": "1.6.1", "yjs": "~13.6.32", "zod": "~4.6.5" } }, "sha512-WgSLVKAJTKc7Is/ooSwrj7LSkGs3i+HtkWHth93crqe/r/SN5GGY2SpmTwO89uI8IhTvckjYDfYSc14RF55STg=="],
 
     "@tanstack/query-core": ["@tanstack/query-core@5.104.5", "", {}, "sha512-Q94gI8Opd+CbdVNOdj8ZCyV8WqLYitrDq1t96Xc8WZT6lY0r5iRnJLXYDxMex7EEf2v+mXvn4FcjaBKSxXZQ9A=="],
 
