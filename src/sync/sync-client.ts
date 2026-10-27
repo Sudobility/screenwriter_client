@@ -672,7 +672,9 @@ export class SyncClient {
 
   private rawSend(ws: WebSocket, frame: SyncFrame): void {
     try {
-      ws.send(encodeFrame(frame));
+      // TS 6 made Uint8Array generic over its buffer; a Uint8Array is a valid
+      // BufferSource at runtime, so narrow it for WebSocket.send's overload.
+      ws.send(encodeFrame(frame) as BufferSource);
       this.lastSent = Date.now();
     } catch (e) {
       this.emit("error", { message: `send failed: ${e instanceof Error ? e.message : String(e)}` });

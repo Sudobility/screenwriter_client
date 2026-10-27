@@ -1,10 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationDir": "./dist",
+    "rootDir": "./src",
     "outDir": "./dist",
     // Force `@sudobility/screenwriter_types`/`@sudobility/writing_core`/`yjs` to resolve through
     // their real, compiled npm dependencies (node_modules) rather than the base tsconfig's own
