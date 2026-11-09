@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -11,15 +14,15 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "baseUrl": ".",
-    "paths": {
-      "@sudobility/screenwriter_types": ["../screenwriter_types/src/index.ts"],
-      "@sudobility/writing_core": ["../writing_core/src/index.ts"],
-      "yjs": ["../writing_core/node_modules/yjs/dist/yjs", "../writing_core/node_modules/yjs"],
-      "lib0": ["../writing_core/node_modules/lib0"],
-      "lib0/*": ["../writing_core/node_modules/lib0/*"]
-    }
+    "paths": {}
   },
-  "include": ["src", "tests", "vitest.config.ts"]
+  "include": [
+    "src",
+    "tests",
+    "vitest.config.ts"
+  ]
 }
