@@ -5,7 +5,7 @@
     "": {
       "name": "@sudobility/screenwriter_client",
       "dependencies": {
-        "@sudobility/screenwriter_types": "^0.1.18",
+        "@sudobility/screenwriter_types": "^0.1.19",
         "@sudobility/writing_core": "^0.1.7",
         "yjs": "~13.6.33",
       },
@@ -76,9 +76,9 @@
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
-    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.18", "https://npm.pkg.github.com/download/@sudobility/screenwriter_types/0.1.18/c4ddb8505a2bd85d100118e8adc5c26be210bdfb", { "dependencies": { "@sudobility/types": "^1.9.79", "@sudobility/writing_core": "^0.1.7", "lib0": "0.2.117", "zod": "~4.6.5" } }, "sha512-p//XaxpviOqAOAw9wZNzmVtqsbn90Dtzdp07ba5kUjJmAySsDoamDIhaZZlNIQqhRJHnVSwSM74ADB8avTMgzA=="],
+    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.19", "https://npm.pkg.github.com/download/@sudobility/screenwriter_types/0.1.19/ed738bf28f0f7e38848e3b0ba6229590905813ab", { "dependencies": { "@sudobility/types": "^1.10.1", "@sudobility/writing_core": "^0.1.7", "lib0": "0.2.117", "zod": "~4.6.5" } }, "sha512-4v4Bet6u04Fimig06ELNU+wMLz1QwbYKS6ofb/xdOXp11kUu7MzPlh6yGiON0M08DQCS4fnkNdVe8FBD+GJ/DA=="],
 
-    "@sudobility/types": ["@sudobility/types@1.9.79", "https://npm.pkg.github.com/download/@sudobility/types/1.9.79/59975e39d6ab7e215418a489ef3cfe214b7521f4", {}, "sha512-rRtDT++fVy+I1m6E31fq752lxCQytFzwfqpJe5wDMPLcC1rJOBa7v+4+5e3cmX8VV1CsuLg8PTLMFe6A7AELRQ=="],
+    "@sudobility/types": ["@sudobility/types@1.10.1", "https://npm.pkg.github.com/download/@sudobility/types/1.10.1/8e353f55822e0bc3fa9555dfe3aee593e140c012", {}, "sha512-LmJyjDDY5rHDET1wstkT0i59SSOrOXijL2iqrgfcK6VHtKcBEw7FFpbw4CyHn+dhR9kqkYpEydSfypoqw7crMg=="],
 
     "@sudobility/writing_core": ["@sudobility/writing_core@0.1.7", "https://npm.pkg.github.com/download/@sudobility/writing_core/0.1.7/11a47c4e9d73cb491c127e3cf3bc957463e5abf3", { "dependencies": { "@noble/hashes": "~2.4.0", "harfbuzzjs": "1.6.1", "yjs": "~13.6.32", "zod": "~4.6.5" } }, "sha512-a3cK1TvVXLyJSrMgvWLFRTNLw+EGfL61wquc9Ny5AHVc8a68JhoIDYSWZr0c/ttvI+0/t/i5hHEM3eJgoVCWpg=="],
 
