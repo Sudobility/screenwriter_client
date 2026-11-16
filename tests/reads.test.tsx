@@ -128,7 +128,7 @@ describe("B10 client methods hit the documented routes", () => {
   });
 
   it("search: global, workspace and document; list params are comma-joined", async () => {
-    const { network, calls } = fake(() => ({ items: [], nextCursor: null }));
+    const { network, calls } = fake(() => ([]));
     const { client } = setup(network);
     await client.search({ q: "ledger", entityId: "ws_1", types: ["element", "note"], styleIds: ["st_action"], characterId: "ent_1", language: "en", limit: 5 });
     await client.searchWorkspace("ws_1", { q: "x", types: ["entity"] });
@@ -206,12 +206,12 @@ describe("typed errors", () => {
 
 describe("hooks", () => {
   it("useEntities / useStats / useTags read through the client and key under the document family", async () => {
-    const { network, calls } = fake(c => (c.path.endsWith("/entities") ? { items: [{ id: "ent_1", name: "MAYA" }], nextCursor: null } : c.path.endsWith("/stats") ? { pages: 3 } : []));
+    const { network, calls } = fake(c => (c.path.endsWith("/entities") ? [{ id: "ent_1", name: "MAYA" }] : c.path.endsWith("/stats") ? { pages: 3 } : []));
     const { wrapper, qc } = setup(network);
     const ents = renderHook(() => useEntities("doc_1", { kind: "character" }), { wrapper });
     const stats = renderHook(() => useStats("doc_1"), { wrapper });
     const tags = renderHook(() => useTags("doc_1", { sceneId: "el_s" }), { wrapper });
-    await waitFor(() => expect(ents.result.current.data?.items[0]?.name).toBe("MAYA"));
+    await waitFor(() => expect(ents.result.current.data?.data![0]?.name).toBe("MAYA"));
     await waitFor(() => expect(stats.result.current.data?.pages).toBe(3));
     await waitFor(() => expect(tags.result.current.data).toEqual([]));
     expect(calls.map(c => c.path).sort()).toEqual([`${B}/entities`, `${B}/stats`, `${B}/tags`]);
@@ -246,12 +246,12 @@ describe("hooks", () => {
   });
 
   it("useSearch is idle for an empty query; useDocumentSearch reports INVALID_REGEX without retrying", async () => {
-    const { network, calls } = fake(c => (c.path.endsWith("/search") && c.path.includes("/documents/") ? { __fail: { status: 400, code: "INVALID_REGEX" } } : { items: [], nextCursor: null }));
+    const { network, calls } = fake(c => (c.path.endsWith("/search") && c.path.includes("/documents/") ? { __fail: { status: 400, code: "INVALID_REGEX" } } : []));
     const { wrapper } = setup(network);
     const idle = renderHook(() => useSearch({ q: "  " }), { wrapper });
     expect(idle.result.current.fetchStatus).toBe("idle");
     const live = renderHook(() => useSearch({ q: "ledger" }), { wrapper });
-    await waitFor(() => expect(live.result.current.data).toEqual({ items: [], nextCursor: null }));
+    await waitFor(() => expect(live.result.current.data?.data).toEqual([]));
     const rx = renderHook(() => useDocumentSearch("doc_1", { q: "(", mode: "regex" }), { wrapper });
     await waitFor(() => expect(rx.result.current.error).toBeTruthy());
     expect((rx.result.current.error as ApiError).code).toBe("INVALID_REGEX");

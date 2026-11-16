@@ -80,7 +80,7 @@ beforeAll(async () => {
     await new Promise(r => setTimeout(r, 100));
   }
   await c.me();
-  wid = (await c.listManagedEntities()).items[0]!.id;
+  wid = (await c.listManagedEntities()).data![0]!.id;
   const pid = (await c.createProject(wid, { name: "B10 client" })).id;
   did = (await c.importDocument(pid, { filename: "lab.fdx", bytes: new TextEncoder().encode(FDX) })).document.id;
   // an import has no entity records until SmartType harvests them (the app runs this after import)
@@ -98,7 +98,7 @@ afterAll(async () => {
 describe("projection reads through the client", () => {
   it("entities: list, detail, usage equals the cues found by reading the script back", async () => {
     const chars = await c.listEntities(did, { kind: "character", limit: 50 });
-    const voss = chars.items.find(e => e.name === "DR. VOSS")!;
+    const voss = chars.data!.find(e => e.name === "DR. VOSS")!;
     expect(voss).toBeTruthy();
     const usage = await c.getEntityUsage(did, voss.id);
     // brute force through the B5 scene reads: count the character cues that name Voss
@@ -114,7 +114,7 @@ describe("projection reads through the client", () => {
     expect(detail).toMatchObject({ name: "DR. VOSS", kind: "character", sceneCount: 2 });
     const dialogue = await c.getEntityDialogue(did, voss.id);
     expect(dialogue.map(d => d.elements.map(e => e.text))).toEqual([["(checking a dial)", "It should not be running."], ["Somebody rewired the machine."]]);
-    expect((await c.listEntities(did, { q: "assist" })).items.map(e => e.name)).toEqual(["ASSISTANT"]);
+    expect((await c.listEntities(did, { q: "assist" })).data!.map(e => e.name)).toEqual(["ASSISTANT"]);
   });
 
   it("stats, title page, tag categories, notes, beats, bin, revisions, changes, Fountain, shots", async () => {
@@ -166,15 +166,15 @@ describe("projection reads through the client", () => {
     expect(hits[0]).toMatchObject({ sceneNumber: null, styleId: expect.any(String), snippet: expect.stringContaining("machine") });
     expect((await c.searchDocument(did, { q: "^Nobody.*it\\.$", mode: "regex" })).length).toBe(1);
     expect((await c.searchDocument(did, { q: "(", mode: "regex" }).catch(e => e)).code).toBe("INVALID_REGEX");
-    const global = await until(() => c.search({ q: "machine", documentId: did }), r => r.items.length >= 3);
-    expect(global.items.every(h => h.documentId === did)).toBe(true);
-    const el = global.items.find(h => h.type === "element")!;
+    const global = await until(() => c.search({ q: "machine", documentId: did }), r => r.data!.length >= 3);
+    expect(global.data!.every(h => h.documentId === did)).toBe(true);
+    const el = global.data!.find(h => h.type === "element")!;
     expect(el.marks.length).toBeGreaterThan(0);
     const ws = await c.searchWorkspace(wid, { q: "machine", types: ["element"] });
-    expect(ws.items.length).toBeGreaterThanOrEqual(3);
+    expect(ws.data!.length).toBeGreaterThanOrEqual(3);
     const stranger = make(`${uid}-x`);
     await stranger.me();
-    expect((await stranger.search({ q: "machine" })).items).toEqual([]);
+    expect((await stranger.search({ q: "machine" })).data!).toEqual([]);
     expect(await stranger.search({ q: "machine", documentId: did }).catch(e => e)).toMatchObject({ code: "DOCUMENT_NOT_FOUND" });
   });
 
@@ -219,7 +219,7 @@ describe("projection reads through the client", () => {
     const char = await c.getCharacterPacket(did, "DR. VOSS");
     characterPacketSchema.parse(char);
     expect(char.body.stats).toMatchObject({ sceneCount: 2, speakingSceneCount: 2 });
-    const locs = (await c.listEntities(did, { kind: "location" })).items;
+    const locs = (await c.listEntities(did, { kind: "location" })).data!;
     expect(locs.length).toBeGreaterThan(0);
     const loc = await c.getLocationPacket(did, locs[0]!.name);
     locationPacketSchema.parse(loc);

@@ -94,7 +94,7 @@ describe("B11 routes and methods", () => {
       if (s.path === "/assets/uploads/upl_1/parts") return ok({ parts: [{ partNumber: 1, url: "http://x/p1", expiresAt: "z" }] });
       if (s.path === "/assets/uploads/upl_1/complete") return ok(assetSummary());
       if (s.path === "/assets/uploads/upl_1") return ok({ aborted: true });
-      if (s.path.startsWith("/assets?")) return ok({ items: [assetSummary()], nextCursor: null });
+      if (s.path.startsWith("/assets?")) return ok([assetSummary()]);
       if (s.path === "/assets/asset_1") return ok({ ...assetSummary(), versions: [], links: [] });
       if (s.path === "/assets/asset_1/versions/asv_1/url") return ok({ url: "http://x/dl", expiresAt: "z" });
       if (s.path === "/documents/doc_1/asset-links") return ok([]);
@@ -107,7 +107,7 @@ describe("B11 routes and methods", () => {
     expect((await client.getAssetUpload("upl_1")).partCount).toBe(1);
     expect((await client.signAssetUploadParts("upl_1", [1])).parts).toHaveLength(1);
     expect((await client.completeAssetUpload("upl_1", { parts: [] })).id).toBe("asset_1");
-    expect((await client.listAssets({ entityId: "ws_1" })).items).toHaveLength(1);
+    expect((await client.listAssets({ entityId: "ws_1" })).data!).toHaveLength(1);
     expect((await client.getAsset("asset_1")).id).toBe("asset_1");
     expect((await client.getAssetUrl("asset_1", "asv_1")).url).toBe("http://x/dl");
     expect((await client.updateAsset("asset_1", { title: "New" })).id).toBe("asset_1");
@@ -296,7 +296,7 @@ describe("B11 uploadAsset (the multipart helper)", () => {
 describe("B11 hooks", () => {
   it("useAssets, useAsset, useAssetLinks, useStaleness read; useCreateAssetLink and useDeleteAsset invalidate (refetch) them", async () => {
     const { wrapper, sent } = setup(s => {
-      if (s.path.startsWith("/assets?")) return ok({ items: [assetSummary()], nextCursor: null });
+      if (s.path.startsWith("/assets?")) return ok([assetSummary()]);
       if (s.path === "/assets/asset_1") return ok({ ...assetSummary(), versions: [], links: [] });
       if (s.path === "/documents/doc_1/asset-links") return ok([]);
       if (s.path === "/documents/doc_1/staleness") return ok([]);
@@ -305,7 +305,7 @@ describe("B11 hooks", () => {
       return fail(404, "NOT_FOUND");
     });
     const list = renderHook(() => useAssets({ entityId: "ws_1" }), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(1));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(1));
     const one = renderHook(() => useAsset("asset_1"), { wrapper });
     await waitFor(() => expect(one.result.current.data?.id).toBe("asset_1"));
     const links = renderHook(() => useAssetLinks("doc_1"), { wrapper });
@@ -332,7 +332,7 @@ describe("B11 hooks", () => {
       if (s.path === "/assets/uploads/upl_1/complete") return ok(assetSummary());
       return fail(404, "NOT_FOUND");
     });
-    qc.setQueryData(["screenwriter", "assets", "list", {}], { items: [], nextCursor: null });
+    qc.setQueryData(["screenwriter", "assets", "list", {}], { success: true, data: [], timestamp: "2026-01-01T00:00:00.000Z", pagination: { hasNextPage: false, nextCursor: null, pageSize: 0 } });
     const { result } = renderHook(() => useUploadAsset(), { wrapper });
     expect(result.current.progress).toBe(0);
     await act(async () => {

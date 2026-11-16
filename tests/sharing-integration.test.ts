@@ -131,7 +131,7 @@ describe("B8 against the real API", () => {
     expect(nf.status).toBe(404);
 
     const members = await owner.listMembers(wid);
-    expect(members.items.map(m => [m.userId, m.role])).toEqual([[U("owner"), "owner"], [U("viewer"), "viewer"]]);
+    expect(members.data!.map(m => [m.userId, m.role])).toEqual([[U("owner"), "owner"], [U("viewer"), "viewer"]]);
     expect((await owner.updateMemberRole(wid, U("viewer"), "writer")).role).toBe("writer");
     expect((await viewer.applyCommands(did, cmd("now allowed"))).applied).toBe(1);
     await owner.updateMemberRole(wid, U("viewer"), "viewer");
@@ -215,7 +215,7 @@ describe("B8 against the real API", () => {
     await owner.inviteMember({ type: "document", id: did }, { email, role: "viewer" });
     await stranger.acceptInvitation(inviteToken(email, "document"));
     expect((await stranger.getSharedState(link.token)).state.byteLength).toBeGreaterThan(0);
-    expect((await stranger.listSharedWithMe()).items.map(i => i.id)).toContain(did);
+    expect((await stranger.listSharedWithMe()).data!.map(i => i.id)).toContain(did);
     const grants = await owner.listGrants({ type: "document", id: did });
     expect(grants.map(g => g.userId)).toContain(U("stranger"));
     await owner.removeGrant(grants.find(g => g.userId === U("stranger"))!.id);
@@ -244,7 +244,7 @@ describe("B8 against the real API", () => {
     const keyClient = new ScreenwriterClient({ network: createFetchNetworkClient(), baseUrl: BASE, getToken: async () => key.key });
     const bound = await keyClient.getDocument(did).catch(e => e);
     expect(bound.status).toBe(404); // the team's document is outside the key's workspace
-    expect((await keyClient.listManagedEntities()).items.map(w => w.id)).toEqual([personal]);
+    expect((await keyClient.listManagedEntities()).data!.map(w => w.id)).toEqual([personal]);
     await expect(keyClient.lockDocument(did)).rejects.toMatchObject({ code: "API_KEY_FORBIDDEN" });
   });
 
@@ -262,6 +262,6 @@ describe("B8 against the real API", () => {
     expect((await owner.leaveManagedEntity(w.id))).toEqual({ left: true });
     await expect(viewer.deleteManagedEntity(w.id, "nope")).rejects.toMatchObject({ code: "CONFIRMATION_MISMATCH" });
     expect((await viewer.deleteManagedEntity(w.id, "Temp")).deletedAt).toBeTruthy();
-    expect((await viewer.listManagedEntities()).items.map(x => x.id)).not.toContain(w.id);
+    expect((await viewer.listManagedEntities()).data!.map(x => x.id)).not.toContain(w.id);
   });
 });

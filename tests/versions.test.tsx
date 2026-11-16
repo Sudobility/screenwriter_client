@@ -216,7 +216,7 @@ describe("B15 hooks", () => {
   it("comments: add and resolve refresh the list, copy-to-live also refreshes the document family", async () => {
     let comments = [comment("snc_1")];
     const { network } = fake(c => {
-      if (c.method === "GET" && c.path === "/snapshots/snap_1/comments") return { items: comments, nextCursor: null };
+      if (c.method === "GET" && c.path === "/snapshots/snap_1/comments") return comments;
       if (c.method === "POST" && c.path === "/snapshots/snap_1/comments") {
         comments = [...comments, comment("snc_2")];
         return comments[1];
@@ -230,19 +230,19 @@ describe("B15 hooks", () => {
     });
     const { wrapper, qc } = setup(network);
     const list = renderHook(() => useSnapshotComments("snap_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(1));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(1));
 
     const add = renderHook(() => useAddSnapshotComment("snap_1"), { wrapper });
     await act(async () => {
       await add.result.current.mutateAsync({ anchor: { elementId: "el_1", offset: 0, length: 2 }, body: "second" });
     });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(2));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(2));
 
     const resolve = renderHook(() => useResolveSnapshotComment("snap_1"), { wrapper });
     await act(async () => {
       await resolve.result.current.mutateAsync({ commentId: "snc_1", resolved: true });
     });
-    await waitFor(() => expect(list.result.current.data?.items[0]!.resolvedAt).toBe(T0));
+    await waitFor(() => expect(list.result.current.data?.data![0]!.resolvedAt).toBe(T0));
 
     qc.setQueryData(queryKeys.documentContent("doc_1"), { stale: true });
     const copy = renderHook(() => useCopyCommentToLive("snap_1", "doc_1"), { wrapper });
@@ -282,14 +282,14 @@ describe("B15 hooks", () => {
 
   it("useElementHistory and usePresence read their routes; restore-as-copy refreshes the document lists only", async () => {
     const { network, calls } = fake(c => {
-      if (c.path === "/documents/doc_1/elements/el_1/history") return { items: [{ at: T0, authors: ["u1"], text: "v2", source: "update" }], nextCursor: null };
+      if (c.path === "/documents/doc_1/elements/el_1/history") return [{ at: T0, authors: ["u1"], text: "v2", source: "update" }];
       if (c.path === "/documents/doc_1/presence") return [{ userId: "u1", displayName: "A", colour: "#e6194b", since: T0, deviceId: "d", deviceName: null, mode: "edit", role: "owner" }];
       if (c.path === "/documents/doc_1/versions/ver_1/restore-as-copy") return { id: "doc_2", title: "Copy" };
       return {};
     });
     const { wrapper, qc } = setup(network);
     const hist = renderHook(() => useElementHistory("doc_1", "el_1"), { wrapper });
-    await waitFor(() => expect(hist.result.current.data?.items[0]!.text).toBe("v2"));
+    await waitFor(() => expect(hist.result.current.data?.data![0]!.text).toBe("v2"));
     const off = renderHook(() => useElementHistory("doc_1", undefined), { wrapper });
     expect(off.result.current.fetchStatus).toBe("idle");
     const pres = renderHook(() => usePresence("doc_1"), { wrapper });

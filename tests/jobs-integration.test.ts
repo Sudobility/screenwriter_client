@@ -93,7 +93,7 @@ describe("jobs through the client against the real API", () => {
     const out = await c.getJobOutputs(created.id);
     expect(out.outputs[0]!.url).toBe(`data:text/plain;base64,${btoa("hi")}`);
     const list = await c.listJobs({ kind: "test.", limit: 50 });
-    expect(list.items.some(j => j.id === created.id)).toBe(true);
+    expect(list.data!.some(j => j.id === created.id)).toBe(true);
     expect(await c.createJob({ kind: "test.echo", dryRun: true })).toEqual({ estimate: { credits: 0, billable: false } });
   });
 
@@ -123,7 +123,7 @@ describe("jobs through the client against the real API", () => {
     const job = await c.createJob({ kind: "test.echo", input: { text } });
     expect(dropped).toBe(2); // the first answer was lost, the retry got the stored one
     await until(() => c.getJob(job.id), j => j.status === "succeeded");
-    const mine = (await c.listJobs({ kind: "test.echo", limit: 200 })).items.filter(j => j.requestSummary.text === text);
+    const mine = (await c.listJobs({ kind: "test.echo", limit: 200 })).data!.filter(j => j.requestSummary.text === text);
     expect(mine).toHaveLength(1);
   });
 
@@ -163,7 +163,7 @@ describe("jobs through the client against the real API", () => {
     const viaJobs = await until(() => c.getJob(started.jobId), j => j.status === "succeeded" || j.status === "failed");
     expect(viaJobs).toMatchObject({ id: started.jobId, kind: "ai.review", subkind: "coverage" });
     expect((await c.getAiJob(started.jobId)).status).toBe(viaJobs.status);
-    expect((await c.listJobs({ kind: "ai." })).items.some(j => j.id === started.jobId)).toBe(true);
+    expect((await c.listJobs({ kind: "ai." })).data!.some(j => j.id === started.jobId)).toBe(true);
   });
 });
 

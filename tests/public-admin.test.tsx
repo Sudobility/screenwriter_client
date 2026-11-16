@@ -95,7 +95,7 @@ describe("B18 client methods", () => {
       ok({ id: "b18-u1", email: "u1@x.co" }),
       ok({ restored: true }),
       ok({ deletionScheduledFor: "2026-01-01T00:00:00Z" }),
-      ok({ items: [], nextCursor: null }),
+      ok([]),
       ok({ id: "job_1", status: "queued" }),
       ok({ refundedCredits: 40, balance: 60 }),
       ok({ kind: "test.echo", enabled: true, maxAttempts: 3 }),
@@ -159,7 +159,7 @@ describe("B18 hooks", () => {
   });
 
   it("useAdminUser, useAdminJobs (only enabled with an email / at all times for jobs)", async () => {
-    const { network } = scripted([ok({ id: "b18-u1", email: "u1@x.co" }), ok({ items: [], nextCursor: null })]);
+    const { network } = scripted([ok({ id: "b18-u1", email: "u1@x.co" }), ok([])]);
     const { wrapper } = setup(network);
     const user = renderHook(() => useAdminUser("u1@x.co"), { wrapper });
     await waitFor(() => expect(user.result.current.data?.id).toBe("b18-u1"));

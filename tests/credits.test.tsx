@@ -69,9 +69,9 @@ describe("B17 client methods", () => {
   it("estimate, activity (me and workspace), reports list/get, note convert", async () => {
     const { network, sent } = scripted([
       ok({ credits: 40, basis: { pages: 80 }, withinLimit: true, balance: 100 }),
-      ok({ items: [], nextCursor: null }),
-      ok({ items: [], nextCursor: null }),
-      ok({ items: [{ jobId: "job_1", task: "coverage", status: "succeeded", createdAt: "x", finishedAt: "y" }], nextCursor: null }),
+      ok([]),
+      ok([]),
+      ok([{ jobId: "job_1", task: "coverage", status: "succeeded", createdAt: "x", finishedAt: "y" }]),
       ok({ logline: "L", summary: "S", genre: [], verdict: "consider", verdictRationale: "", strengths: [], weaknesses: [], notesByScene: [], stats: { scenes: 1, chunks: 1, droppedItems: 0 } }),
       ok({ scriptNoteId: "note_1" }),
     ]);
@@ -157,7 +157,7 @@ describe("B17 hooks", () => {
   });
 
   it("useMyAiActivity, useWorkspaceAiActivity", async () => {
-    const { network } = scripted([ok({ items: [], nextCursor: null }), ok({ items: [], nextCursor: null })]);
+    const { network } = scripted([ok([]), ok([])]);
     const { wrapper } = setup(network);
     const mine = renderHook(() => useMyAiActivity(), { wrapper });
     await waitFor(() => expect(mine.result.current.isSuccess).toBe(true));
@@ -167,10 +167,10 @@ describe("B17 hooks", () => {
 
   it("useAiReports, useAiReport, useConvertAiNote", async () => {
     const report = { logline: "L", summary: "S", genre: [], verdict: "consider", verdictRationale: "", strengths: [], weaknesses: [], notesByScene: [], stats: { scenes: 1, chunks: 1, droppedItems: 0 } };
-    const { network } = scripted([ok({ items: [{ jobId: "job_1", task: "coverage", status: "succeeded", createdAt: "x", finishedAt: "y" }], nextCursor: null }), ok(report), ok({ scriptNoteId: "note_1" })]);
+    const { network } = scripted([ok([{ jobId: "job_1", task: "coverage", status: "succeeded", createdAt: "x", finishedAt: "y" }]), ok(report), ok({ scriptNoteId: "note_1" })]);
     const { wrapper } = setup(network);
     const list = renderHook(() => useAiReports("doc_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items.length).toBe(1));
+    await waitFor(() => expect(list.result.current.data?.data!.length).toBe(1));
     const one = renderHook(() => useAiReport("doc_1", "job_1"), { wrapper });
     await waitFor(() => expect(one.result.current.data?.logline).toBe("L"));
     const convert = renderHook(() => useConvertAiNote("doc_1"), { wrapper });

@@ -115,19 +115,19 @@ describe("B14 against the real API", () => {
     const snap = await owner.createSnapshot(doc.id, { name: "Before" });
     await owner.applyCommands(doc.id, insert("Later line."));
     await owner.openSnapshot(snap.id); // epoch bump: pre-open snapshot + pre-epoch version point
-    const before = { snaps: (await owner.listSnapshots(doc.id)).snapshots.map(s => s.id).sort(), versions: (await owner.listVersions(doc.id)).items.length, content: JSON.stringify((await owner.getDocumentContent(doc.id)).elements.map(e => e.text.plain)) };
+    const before = { snaps: (await owner.listSnapshots(doc.id)).snapshots.map(s => s.id).sort(), versions: (await owner.listVersions(doc.id)).data!.length, content: JSON.stringify((await owner.getDocumentContent(doc.id)).elements.map(e => e.text.plain)) };
     expect(before.snaps.length).toBeGreaterThanOrEqual(2);
     expect(before.versions).toBeGreaterThanOrEqual(1);
 
     await owner.trashDocument(doc.id);
-    const trash = (await owner.listTrash(wid)).items;
+    const trash = (await owner.listTrash(wid)).data!;
     const item = trash.find(t => t.id === doc.id)!;
     expect(item).toMatchObject({ type: "document", projectId: pid });
     expect(Date.parse(item.purgeAt) - Date.parse(item.trashedAt)).toBe(30 * 86_400_000);
     await owner.restoreDocument(doc.id);
-    expect((await owner.listTrash(wid)).items.map(t => t.id)).not.toContain(doc.id);
+    expect((await owner.listTrash(wid)).data!.map(t => t.id)).not.toContain(doc.id);
     expect((await owner.listSnapshots(doc.id)).snapshots.map(s => s.id).sort()).toEqual(before.snaps);
-    expect((await owner.listVersions(doc.id)).items).toHaveLength(before.versions);
+    expect((await owner.listVersions(doc.id)).data!).toHaveLength(before.versions);
     expect(JSON.stringify((await owner.getDocumentContent(doc.id)).elements.map(e => e.text.plain))).toBe(before.content);
 
     // purge: not while live, not for a writer, then gone with everything attached
@@ -148,7 +148,7 @@ describe("B14 against the real API", () => {
     await e("1x02", 1, 2);
     const bible = await e("Series bible");
     await e("1x01", 1, 1);
-    const titles = async (order?: "position" | "episode") => (await owner.listDocuments(show.id, order ? { order } : {})).items.map(d => d.title);
+    const titles = async (order?: "position" | "episode") => (await owner.listDocuments(show.id, order ? { order } : {})).data!.map(d => d.title);
     expect(await titles()).toEqual(["1x01", "1x02", "2x01", "Series bible"]);
     expect(await titles("position")).toEqual(["2x01", "1x02", "Series bible", "1x01"]);
     expect((await owner.getProject(show.id)).documents.map(d => d.title)).toEqual(["1x01", "1x02", "2x01", "Series bible"]);
@@ -157,13 +157,13 @@ describe("B14 against the real API", () => {
 
     // folders + duplicate as a job
     const folder = await owner.createFolder(show.id, { name: "Season 1" });
-    const first = (await owner.listDocuments(show.id)).items.find(d => d.title === "1x01")!;
+    const first = (await owner.listDocuments(show.id)).data!.find(d => d.title === "1x01")!;
     await owner.updateDocument(first.id, { folderId: folder.id, labels: ["aired"] });
     const job = await owner.duplicateProject(show.id, { name: "The Show (copy)", includeSnapshots: false, includeAssets: false });
     expect(job.kind).toBe("project.duplicate");
     const done = await finished(owner, job);
     expect(done.status, JSON.stringify(done)).toBe("succeeded");
-    const copy = (await owner.listProjects(wid, { q: "The Show (copy)" })).items[0]!;
+    const copy = (await owner.listProjects(wid, { q: "The Show (copy)" })).data![0]!;
     const copyDetail = await owner.getProject(copy.id);
     expect(copyDetail.kind).toBe("series");
     expect(copyDetail.documents.map(d => d.title)).toEqual(["Series bible", "1x01", "1x02", "2x01"]); // numbering survived the copy
@@ -182,8 +182,8 @@ describe("B14 against the real API", () => {
     // labels, stars and the workspace list
     await owner.starDocument(first.id);
     const starred = await owner.listWorkspaceDocuments(wid, { starred: true, label: "aired" });
-    expect(starred.items.map(d => d.id)).toEqual([first.id]);
-    expect((await writer.listWorkspaceDocuments(wid, { starred: true })).items).toEqual([]);
+    expect(starred.data!.map(d => d.id)).toEqual([first.id]);
+    expect((await writer.listWorkspaceDocuments(wid, { starred: true })).data!).toEqual([]);
   }, 60000);
 
   it("editing a workspace template changes no existing document until each applies it (F-TPL-007)", async () => {
@@ -247,9 +247,9 @@ describe("B14 against the real API", () => {
   it("Shared Bin, defaults with a lost race, contacts, the public-links switch", async () => {
     const item = await writer.addToProjectBin(pid, { title: "Cold open", elements: [{ id: "el_1", style: "st_action", text: { plain: "Fade in.", marks: [] }, notes: [{ id: "n" }] }] });
     expect(item.elements[0]).not.toHaveProperty("notes");
-    expect((await owner.listProjectBin(pid)).items.map(i => i.id)).toEqual([item.id]);
+    expect((await owner.listProjectBin(pid)).data!.map(i => i.id)).toEqual([item.id]);
     expect(await writer.removeFromProjectBin(item.id)).toEqual({ deleted: true });
-    expect((await owner.listProjectBin(pid)).items).toEqual([]);
+    expect((await owner.listProjectBin(pid)).data!).toEqual([]);
 
     // two devices: the second write carries an old token and is merged onto the server copy by the client
     const d0 = await admin.getWorkspaceDefaults(wid);
@@ -262,8 +262,8 @@ describe("B14 against the real API", () => {
     await expect(writer.setWorkspaceDefaults(wid, { noteTypes: [] })).rejects.toMatchObject({ status: 403 });
 
     const made = await admin.createContacts(wid, [{ name: "Zoe Zed", email: "zoe@zed.example" }, { name: "Adam Able" }]);
-    expect((await owner.listContacts(wid)).items.map(c => c.name)).toEqual(["Adam Able", "Zoe Zed"]);
-    expect((await owner.listContacts(wid, { q: "zed" })).items).toHaveLength(1);
+    expect((await owner.listContacts(wid)).data!.map(c => c.name)).toEqual(["Adam Able", "Zoe Zed"]);
+    expect((await owner.listContacts(wid, { q: "zed" })).data!).toHaveLength(1);
     expect(await admin.updateContact(made[0]!.id, { company: "Zed Films" })).toMatchObject({ company: "Zed Films" });
     expect(await admin.deleteContact(made[1]!.id)).toEqual({ deleted: true });
     await expect(writer.createContacts(wid, [{ name: "no" }])).rejects.toMatchObject({ status: 403 });
@@ -295,7 +295,7 @@ describe("B14 against the real API", () => {
     const job = await admin.emptyTrash(wid);
     expect(job.kind).toBe("system.purge");
     expect((await finished(admin, job)).status).toBe("succeeded");
-    expect((await owner.listTrash(wid)).items).toEqual([]);
+    expect((await owner.listTrash(wid)).data!).toEqual([]);
     await expect(owner.getDocument(lone.id)).rejects.toMatchObject({ status: 404 });
   }, 60000);
 });

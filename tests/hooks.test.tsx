@@ -28,7 +28,7 @@ function fakeNetwork() {
         projects.push(p);
         return json(201, p);
       }
-      return json(200, { items: [...projects], nextCursor: null });
+      return json(200, [...projects]);
     },
   };
   return { network, calls };
@@ -43,10 +43,10 @@ describe("hooks", () => {
       createElement(QueryClientProvider, { client: qc }, createElement(ScreenwriterClientProvider, { client, children }));
 
     const list = renderHook(() => useProjects("ws_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toEqual([]));
+    await waitFor(() => expect(list.result.current.data?.data!).toEqual([]));
     const create = renderHook(() => useCreateProject("ws_1"), { wrapper });
     create.result.current.mutate({ name: "Alpha" });
-    await waitFor(() => expect(list.result.current.data?.items.map(p => p.name)).toEqual(["Alpha"]));
+    await waitFor(() => expect(list.result.current.data?.data!.map(p => p.name)).toEqual(["Alpha"]));
     expect(calls).toEqual([
       "GET /api/v1/entities/ws_1/projects",
       "POST /api/v1/entities/ws_1/projects",

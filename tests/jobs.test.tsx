@@ -128,7 +128,7 @@ describe("retry policy (pure)", () => {
 
 describe("request funnel", () => {
   it("sends X-Client and an Idempotency-Key on creates, none on reads; the key reaches the body of createJob", async () => {
-    const { network, sent } = scripted([ok(job(), 202), ok({ items: [], nextCursor: null })]);
+    const { network, sent } = scripted([ok(job(), 202), ok([])]);
     const { client } = clientFor(network, { clientTag: "web/1.2.3" });
     await client.createJob({ kind: "test.echo", input: { text: "a" } });
     await client.listJobs({ kind: "ai.", status: "running" });
@@ -269,7 +269,7 @@ describe("request funnel", () => {
 
 describe("job methods hit the documented routes", () => {
   it("list, get (wait), create, cancel, outputs, recipients", async () => {
-    const { network, sent } = scripted([ok({ items: [], nextCursor: null }), ok(job()), ok(job(), 202), ok(job({ status: "cancelled" })), ok({ outputs: [] }), ok([])]);
+    const { network, sent } = scripted([ok([]), ok(job()), ok(job(), 202), ok(job({ status: "cancelled" })), ok({ outputs: [] }), ok([])]);
     const { client } = clientFor(network);
     await client.listJobs({ documentId: "doc_1", limit: 5 });
     await client.getJob("job/1", { wait: 30 });
@@ -330,7 +330,7 @@ describe("job hooks", () => {
         calls.push(`${req.method} ${path}`);
         if (req.method === "POST" && path === "/jobs") return ok(job({ id: "job_9" }), 202);
         if (path.endsWith("/cancel")) return ok(job({ id: "job_9", status: "cancelled", cancelRequested: false }));
-        if (path === "/jobs") return ok({ items: [job()], nextCursor: null });
+        if (path === "/jobs") return ok([job()]);
         return ok(job({ id: "job_9", status: "queued" }));
       },
     };
@@ -338,7 +338,7 @@ describe("job hooks", () => {
     renderHook(() => useJob(undefined), { wrapper });
     expect(calls).toEqual([]);
     const list = renderHook(() => useJobs({ kind: "test." }), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(1));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(1));
     const create = renderHook(() => useCreateJob(), { wrapper });
     await act(async () => void (await create.result.current.mutateAsync({ kind: "test.echo" })));
     expect(qc.getQueryData<Job>(["screenwriter", "jobs", "detail", "job_9"])?.status).toBe("queued");

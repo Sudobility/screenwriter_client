@@ -203,9 +203,9 @@ describe("B16 hooks", () => {
       if (s.path === "/imports/upl_1/start") return ok(job({ id: "job_5", status: "queued" }), 202);
       if (s.path === "/jobs/job_5") return ok(job({ id: "job_5", status: ++reads < 2 ? "running" : "succeeded" }));
       if (s.path === "/jobs/job_5/outputs") return ok({ outputs: [{ name: "conversion-report.json", mimeType: "application/json", sizeBytes: 2, url: "data:application/json;base64,e30=", expiresAt: null, documentId: "doc_new" }] });
-      return ok({ items: [], nextCursor: null });
+      return ok([]);
     });
-    qc.setQueryData(["screenwriter", "document-lists", "prj_1", {}], { items: [] });
+    qc.setQueryData(["screenwriter", "document-lists", "prj_1", {}], { success: true, data: [], timestamp: "2026-01-01T00:00:00.000Z", pagination: { hasNextPage: false, nextCursor: null, pageSize: 0 } });
     const { result } = renderHook(() => useImportJob({ projectId: "prj_1" }), { wrapper });
     await act(async () => void (await result.current.start({ filename: "a.fountain", bytes: text("x") })));
     expect(result.current.jobId).toBe("job_5");

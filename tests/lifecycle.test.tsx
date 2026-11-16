@@ -285,7 +285,7 @@ describe("hooks", () => {
   });
 
   it("trash, purge and empty refresh the trash family and the lists", async () => {
-    const { network, calls } = fake(c => (c.method === "GET" ? { items: [], nextCursor: null } : { purgeScheduled: true }));
+    const { network, calls } = fake(c => (c.method === "GET" ? [] : { purgeScheduled: true }));
     const { wrapper } = setup(network);
     const trash = renderHook(() => useTrash("ws_1"), { wrapper });
     const docs = renderHook(() => useWorkspaceDocuments("ws_1", { starred: true }), { wrapper });
@@ -327,7 +327,7 @@ describe("hooks", () => {
   });
 
   it("move refreshes document lists and the document; folder delete refreshes the project", async () => {
-    const { network, calls } = fake(c => (c.method === "GET" ? { items: [], nextCursor: null } : {}));
+    const { network, calls } = fake(c => (c.method === "GET" ? [] : {}));
     const { wrapper } = setup(network);
     const docs = renderHook(() => useWorkspaceDocuments("ws_1"), { wrapper });
     await waitFor(() => expect(docs.result.current.isSuccess).toBe(true));
@@ -379,7 +379,7 @@ describe("hooks", () => {
   });
 
   it("contacts are keyed per workspace and filter", async () => {
-    const { network, calls } = fake(() => ({ items: [{ id: "ctc_1", name: "Zoe", company: null, email: null }], nextCursor: null }));
+    const { network, calls } = fake(() => ([{ id: "ctc_1", name: "Zoe", company: null, email: null }]));
     const { qc, wrapper } = setup(network);
     const r = renderHook(() => useContacts("ws_1", { q: "zo" }), { wrapper });
     await waitFor(() => expect(r.result.current.isSuccess).toBe(true));

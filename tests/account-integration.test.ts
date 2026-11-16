@@ -78,7 +78,7 @@ describe("B13 against the real API", () => {
   beforeAll(async () => {
     await owner.me();
     await viewer.me();
-    wid = (await owner.listManagedEntities()).items[0]!.id;
+    wid = (await owner.listManagedEntities()).data![0]!.id;
     const db = sql();
     try {
       await db`INSERT INTO entity_members (entity_id, user_id, role) VALUES (${wid}, ${U("viewer")}, 'viewer')`;

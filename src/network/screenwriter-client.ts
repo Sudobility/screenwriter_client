@@ -242,7 +242,7 @@ import {
   type Me,
   type MeUpdateRequest,
   type OutlineResponse,
-  type Paginated,
+  type PaginatedResponse,
   type Project,
   type ProjectCreateRequest,
   type ProjectListQuery,
@@ -860,6 +860,35 @@ export class ScreenwriterClient {
     }
   }
 
+  /**
+   * Like {@link json} but for list endpoints: returns the whole canonical `PaginatedResponse`
+   * envelope (the items in `data`, the cursor in the sibling `pagination`) rather than unwrapping `data`.
+   */
+  private async page<T>(
+    method: HttpMethod,
+    path: string,
+    query?: Query,
+    body?: unknown,
+    auth: AuthMode = "user",
+    key?: string,
+  ): Promise<PaginatedResponse<T>> {
+    const res = await this.send(method, path, query, body, auth, key);
+    if (res.status < 200 || res.status >= 300) this.fail(res);
+    try {
+      const env = JSON.parse(
+        new TextDecoder().decode(res.body),
+      ) as PaginatedResponse<T>;
+      if (env.success !== true) throw new Error("not a success envelope");
+      return env;
+    } catch {
+      throw new ApiError(
+        "Malformed response envelope",
+        "BAD_RESPONSE",
+        res.status,
+      );
+    }
+  }
+
   private async bytes(
     path: string,
     query?: Query,
@@ -895,7 +924,7 @@ export class ScreenwriterClient {
   // ─── entities ──────────────────────────────────────────────────────────
 
   listManagedEntities() {
-    return this.json<Paginated<ManagedEntityListItem>>("GET", "/entities");
+    return this.page<ManagedEntityListItem>("GET", "/entities");
   }
   getEntityDetails(entityId: string) {
     return this.json<ManagedEntityDetail>("GET", `/entities/${enc(entityId)}`);
@@ -942,7 +971,7 @@ export class ScreenwriterClient {
     wid: string,
     query: Partial<WorkspaceDocumentsQuery> = {},
   ) {
-    return this.json<Paginated<DocumentMeta>>(
+    return this.page<DocumentMeta>(
       "GET",
       `/entities/${enc(wid)}/documents`,
       query,
@@ -950,7 +979,7 @@ export class ScreenwriterClient {
   }
   /** Trashed projects and documents, with the date each is purged (30 days after it was trashed). */
   listTrash(wid: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<TrashItem>>(
+    return this.page<TrashItem>(
       "GET",
       `/entities/${enc(wid)}/trash`,
       query,
@@ -1009,7 +1038,7 @@ export class ScreenwriterClient {
   }
   /** Batch-watermark recipients (admin-managed, any member reads). `q` matches name, company and email. */
   listContacts(wid: string, query: Partial<WorkspaceContactsQuery> = {}) {
-    return this.json<Paginated<WorkspaceContact>>(
+    return this.page<WorkspaceContact>(
       "GET",
       `/entities/${enc(wid)}/contacts`,
       query,
@@ -1057,7 +1086,7 @@ export class ScreenwriterClient {
   // ─── members and invitations (B8) ────────────────────────────────────────
 
   listMembers(wid: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<Member>>(
+    return this.page<Member>(
       "GET",
       `/entities/${enc(wid)}/members`,
       query,
@@ -1112,7 +1141,7 @@ export class ScreenwriterClient {
         : this.inviteToDocument(target.id, body);
   }
   listEntityInvitations(entityId: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<Invitation>>(
+    return this.page<Invitation>(
       "GET",
       `/entities/${enc(entityId)}/invitations`,
       query,
@@ -1152,7 +1181,7 @@ export class ScreenwriterClient {
   }
   /** Projects and documents shared with the caller through grants (outside their own entities). */
   listSharedWithMe(query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<SharedItem>>("GET", "/me/shared", query);
+    return this.page<SharedItem>("GET", "/me/shared", query);
   }
 
   // ─── document lock (B8) ──────────────────────────────────────────────────
@@ -1314,7 +1343,7 @@ export class ScreenwriterClient {
     wid: string,
     query: Partial<CursorQuery> & Partial<ProjectListQuery> = {},
   ) {
-    return this.json<Paginated<ProjectSummary>>(
+    return this.page<ProjectSummary>(
       "GET",
       `/entities/${enc(wid)}/projects`,
       query,
@@ -1393,7 +1422,7 @@ export class ScreenwriterClient {
   // ─── Shared Bin (project-level snippets, B14) ────────────────────────────
 
   listProjectBin(pid: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<ProjectBinItem>>(
+    return this.page<ProjectBinItem>(
       "GET",
       `/projects/${enc(pid)}/bin`,
       query,
@@ -1421,7 +1450,7 @@ export class ScreenwriterClient {
     pid: string,
     query: Partial<CursorQuery> & Partial<DocumentListQuery> = {},
   ) {
-    return this.json<Paginated<DocumentMeta>>(
+    return this.page<DocumentMeta>(
       "GET",
       `/projects/${enc(pid)}/documents`,
       query,
@@ -1550,7 +1579,7 @@ export class ScreenwriterClient {
   // `source` on every read is `live` (default), `snapshot:<id>` or `version:<id>`.
 
   listEntities(did: string, query: Partial<EntityListQuery> = {}) {
-    return this.json<Paginated<EntitySummary>>(
+    return this.page<EntitySummary>(
       "GET",
       `/documents/${enc(did)}/entities`,
       query,
@@ -1707,7 +1736,7 @@ export class ScreenwriterClient {
   /** Full-text search across the caller's readable documents (scope with `entityId`, `projectId` or `documentId`). */
   search(query: Partial<SearchQuery> & { q: string }) {
     const { types, styleIds, ...rest } = query;
-    return this.json<Paginated<SearchHit>>("GET", "/search", {
+    return this.page<SearchHit>("GET", "/search", {
       ...rest,
       types: types?.join(","),
       styleIds: styleIds?.join(","),
@@ -1718,7 +1747,7 @@ export class ScreenwriterClient {
     query: Partial<Omit<SearchQuery, "entityId">> & { q: string },
   ) {
     const { types, styleIds, ...rest } = query;
-    return this.json<Paginated<SearchHit>>(
+    return this.page<SearchHit>(
       "GET",
       `/entities/${enc(wid)}/search`,
       { ...rest, types: types?.join(","), styleIds: styleIds?.join(",") },
@@ -2032,7 +2061,7 @@ export class ScreenwriterClient {
   }
   /** `?entityId=` is required for a user (a key defaults to its own workspace). */
   listAssets(query: Partial<AssetListQuery> = {}) {
-    return this.json<Paginated<AssetListItem>>(
+    return this.page<AssetListItem>(
       "GET",
       "/assets",
       query as Query,
@@ -2369,7 +2398,7 @@ export class ScreenwriterClient {
   // ─── versions ────────────────────────────────────────────────────────────
 
   listVersions(did: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<VersionListItem>>(
+    return this.page<VersionListItem>(
       "GET",
       `/documents/${enc(did)}/versions`,
       query,
@@ -2417,7 +2446,7 @@ export class ScreenwriterClient {
     elementId: string,
     query: Partial<CursorQuery> = {},
   ) {
-    return this.json<Paginated<ElementHistoryEntry>>(
+    return this.page<ElementHistoryEntry>(
       "GET",
       `/documents/${enc(did)}/elements/${enc(elementId)}/history`,
       query,
@@ -2508,7 +2537,7 @@ export class ScreenwriterClient {
     );
   }
   listSnapshotComments(sid: string, query: Partial<CursorQuery> = {}) {
-    return this.json<Paginated<SnapshotComment>>(
+    return this.page<SnapshotComment>(
       "GET",
       `/snapshots/${enc(sid)}/comments`,
       query,
@@ -2745,7 +2774,7 @@ export class ScreenwriterClient {
 
   /** The caller's jobs (or, with `documentId`, every job on a document they can read). `kind` is exact or a family prefix like `ai.`. */
   listJobs(query: JobListQuery = {}) {
-    return this.json<Paginated<Job>>("GET", "/jobs", query as Query);
+    return this.page<Job>("GET", "/jobs", query as Query);
   }
   /** A job's status and progress (never its request or result). `wait` (seconds, max 120) long-polls until status or progress stage changes. */
   getJob(jobId: string, opts: { wait?: number } = {}) {
@@ -2865,7 +2894,7 @@ export class ScreenwriterClient {
   listMyAiActivity(
     query: { limit?: number; cursor?: string; documentId?: string } = {},
   ) {
-    return this.json<Paginated<AiActivityItem>>(
+    return this.page<AiActivityItem>(
       "GET",
       "/me/ai-activity",
       query as Query,
@@ -2880,7 +2909,7 @@ export class ScreenwriterClient {
       documentId?: string;
     } = {},
   ) {
-    return this.json<Paginated<AiActivityItem & { userId: string }>>(
+    return this.page<AiActivityItem & { userId: string }>(
       "GET",
       `/entities/${enc(wid)}/ai-activity`,
       query as Query,
@@ -2899,7 +2928,7 @@ export class ScreenwriterClient {
     did: string,
     query: { limit?: number; cursor?: string; task?: string } = {},
   ) {
-    return this.json<Paginated<AiReportSummary>>(
+    return this.page<AiReportSummary>(
       "GET",
       `/documents/${enc(did)}/ai/reports`,
       query as Query,
@@ -3094,15 +3123,14 @@ export class ScreenwriterClient {
   /** Reads `X-Unread-Count` (spec 05 §6.16), so the badge count is one call, not a second query. */
   async listNotifications(
     query: Partial<NotificationsQuery> = {},
-  ): Promise<Paginated<Notification> & { unreadCount: number }> {
+  ): Promise<PaginatedResponse<Notification> & { unreadCount: number }> {
     const res = await this.send("GET", "/notifications", query as Query);
     if (res.status < 200 || res.status >= 300) this.fail(res);
-    const env = JSON.parse(new TextDecoder().decode(res.body)) as {
-      success: true;
-      data: Paginated<Notification>;
-    };
+    const env = JSON.parse(
+      new TextDecoder().decode(res.body),
+    ) as PaginatedResponse<Notification>;
     return {
-      ...env.data,
+      ...env,
       unreadCount: Number(res.headers["x-unread-count"] ?? 0),
     };
   }
@@ -3215,7 +3243,7 @@ export class ScreenwriterClient {
     );
   }
   listChat(did: string, query: Partial<ChatQuery> = {}) {
-    return this.json<Paginated<ChatMessage>>(
+    return this.page<ChatMessage>(
       "GET",
       `/documents/${enc(did)}/chat`,
       query as Query,
@@ -3252,7 +3280,7 @@ export class ScreenwriterClient {
   }
   listDocumentActivity(did: string, query: Partial<ActivityQuery> = {}) {
     const { kinds, ...rest } = query;
-    return this.json<Paginated<ActivityEvent>>(
+    return this.page<ActivityEvent>(
       "GET",
       `/documents/${enc(did)}/activity`,
       { ...rest, kinds: kinds?.join(",") },
@@ -3262,7 +3290,7 @@ export class ScreenwriterClient {
     wid: string,
     query: Partial<WorkspaceActivityQuery> = {},
   ) {
-    return this.json<Paginated<WorkspaceActivityEvent>>(
+    return this.page<WorkspaceActivityEvent>(
       "GET",
       `/entities/${enc(wid)}/activity`,
       query as Query,
@@ -3411,7 +3439,7 @@ export class ScreenwriterClient {
     );
   }
   adminListJobs(query: AdminJobListQuery = {}) {
-    return this.json<Paginated<Job>>("GET", "/admin/jobs", query as Query);
+    return this.page<Job>("GET", "/admin/jobs", query as Query);
   }
   adminRetryJob(jobId: string) {
     return this.json<Job>("POST", `/admin/jobs/${enc(jobId)}/retry`);

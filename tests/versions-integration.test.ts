@@ -98,10 +98,10 @@ describe("B15 versions, snapshots and sync completion through the client against
     const a = await add(did, "ALPHA");
     await sleep(1200);
     await add(did, "BETA"); // interval version point (ALPHA and BETA)
-    const point = (await owner.listVersions(did)).items.find((i): i is VersionPoint => "reason" in i && i.reason === "interval")!;
+    const point = (await owner.listVersions(did)).data!.find((i): i is VersionPoint => "reason" in i && i.reason === "interval")!;
     await add(did, "GAMMA");
     const before = await owner.getDocument(did);
-    const versions = (await owner.listVersions(did)).items.length;
+    const versions = (await owner.listVersions(did)).data!.length;
 
     const copy = await owner.restoreVersionAsCopy(did, point.id!, { title: "Copy of v" });
     expect(copy).toMatchObject({ title: "Copy of v", epoch: 0, projectId: pid });
@@ -112,7 +112,7 @@ describe("B15 versions, snapshots and sync completion through the client against
     expect(content.meta.forkedFrom).toMatchObject({ docId: did, versionId: point.id });
     const after = await owner.getDocument(did);
     expect(after.epoch).toBe(before.epoch);
-    expect((await owner.listVersions(did)).items).toHaveLength(versions);
+    expect((await owner.listVersions(did)).data!).toHaveLength(versions);
     expect(JSON.stringify(await owner.getDocumentContent(did))).toContain("GAMMA");
     // a commenter may not restore into a copy, an outsider sees nothing
     await expect(commenter.restoreVersionAsCopy(did, point.id!, { title: "x" })).rejects.toBeInstanceOf(RoleInsufficientError);
@@ -145,8 +145,8 @@ describe("B15 versions, snapshots and sync completion through the client against
 
     // line history: the edited element lists its versions, newest first, with the author
     const hist = await commenter.getElementHistory(did, edit);
-    expect(hist.items.map(i => i.text)).toEqual(["She slams the door hard."]); // one author session (created and edited by the owner within minutes)
-    expect(hist.items[0]).toMatchObject({ authors: [U("owner")], source: "update" });
+    expect(hist.data!.map(i => i.text)).toEqual(["She slams the door hard."]); // one author session (created and edited by the owner within minutes)
+    expect(hist.data![0]).toMatchObject({ authors: [U("owner")], source: "update" });
     await expect(owner.getElementHistory(did, "el_missing")).rejects.toMatchObject({ status: 404 });
   }, 40000);
 
@@ -187,7 +187,7 @@ describe("B15 versions, snapshots and sync completion through the client against
     expect((await owner.copyCommentToLive(c.id)).noteId).toBe(noteId);
     const live = await owner.getDocumentContent(did);
     expect(live.notes.find(n => n.id === noteId)).toMatchObject({ anchor: { kind: "element", elementId: line }, authorUid: U("commenter") });
-    expect((await owner.listSnapshotComments(snap.id)).items[0]!.copiedToLiveNoteId).toBe(noteId);
+    expect((await owner.listSnapshotComments(snap.id)).data![0]!.copiedToLiveNoteId).toBe(noteId);
     await expect(outsider.listSnapshotComments(snap.id)).rejects.toMatchObject({ status: 404 });
     // once the commented text is gone the copy is refused with the typed error and nothing is written
     const c2 = await commenter.addSnapshotComment(snap.id, { anchor: { elementId: line, offset: 6, length: 5 }, body: "again" });

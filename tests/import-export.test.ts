@@ -29,7 +29,7 @@ function fake() {
       }
       if (path.endsWith("/export")) return ok({ filename: "a.fountain", mimeType: "text/plain", contentB64: bytesToBase64(new TextEncoder().encode("INT. X - DAY")), report, format: "fountain" });
       if (path === "/api/v1/formats") return ok([{ id: "fountain", label: "Fountain", extensions: [".fountain"], canImport: true, canExport: true }]);
-      return ok({ items: [...docs], nextCursor: null });
+      return ok([...docs]);
     },
   };
   return { network, calls };
@@ -62,9 +62,9 @@ describe("import and export", () => {
     const wrapper = ({ children }: { children?: ReactNode }) =>
       createElement(QueryClientProvider, { client: qc }, createElement(ScreenwriterClientProvider, { client, children }));
     const list = renderHook(() => useDocuments("prj_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toEqual([]));
+    await waitFor(() => expect(list.result.current.data?.data!).toEqual([]));
     const imp = renderHook(() => useImportDocument("prj_1"), { wrapper });
     imp.result.current.mutate({ filename: "a.fountain", bytes: new Uint8Array([104, 105]) });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(1));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(1));
   });
 });

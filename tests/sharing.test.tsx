@@ -208,13 +208,13 @@ describe("sharing hooks", () => {
         role = (r.body as { role: string }).role;
         return ok({ userId: "u2", role });
       }
-      return ok({ items: [{ userId: "u2", role }], nextCursor: null });
+      return ok([{ userId: "u2", role }]);
     });
     const list = renderHook(() => useMembers("ws_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items[0]!.role).toBe("viewer"));
+    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("viewer"));
     const upd = renderHook(() => useUpdateMemberRole("ws_1"), { wrapper });
     upd.result.current.mutate({ uid: "u2", role: "writer" });
-    await waitFor(() => expect(list.result.current.data?.items[0]!.role).toBe("writer"));
+    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("writer"));
     expect(calls.filter(c => c.method === "GET" && c.path === "/entities/ws_1/members").length).toBeGreaterThanOrEqual(2);
     // removing invalidates the sharing family too
     const rm = renderHook(() => useRemoveMember("ws_1"), { wrapper });

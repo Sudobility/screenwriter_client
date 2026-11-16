@@ -91,7 +91,7 @@ describe("REST against the real API", () => {
     expect(ydoc instanceof Y.Doc).toBe(true); // single Yjs instance: the API's bytes decode with our import
     expect(ydoc.share.size).toBeGreaterThan(0);
 
-    expect((await rest.listDocuments(project.id)).items.map(d => d.id)).toContain(doc.id);
+    expect((await rest.listDocuments(project.id)).data!.map(d => d.id)).toContain(doc.id);
     expect((await rest.getDocument(doc.id)).template?.styles.length).toBeGreaterThan(0);
   });
 

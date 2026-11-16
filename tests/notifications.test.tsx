@@ -70,7 +70,7 @@ describe("B12 client methods", () => {
 
   it("listNotifications reads X-Unread-Count; read/delete", async () => {
     const { network, sent } = scripted([
-      ok({ items: [{ id: "ntf_1", kind: "mention", payload: {}, entityId: null, documentId: null, readAt: null, createdAt: "2026-01-01T00:00:00Z" }], nextCursor: null }, 200, {
+      ok([{ id: "ntf_1", kind: "mention", payload: {}, entityId: null, documentId: null, readAt: null, createdAt: "2026-01-01T00:00:00Z" }], 200, {
         "x-unread-count": "3",
       }),
       ok({ updated: 1 }),
@@ -79,7 +79,7 @@ describe("B12 client methods", () => {
     const client = clientFor(network);
     const list = await client.listNotifications({ unread: true });
     expect(list.unreadCount).toBe(3);
-    expect(list.items).toHaveLength(1);
+    expect(list.data!).toHaveLength(1);
     expect(pathOf(sent[0]!)).toBe("/notifications?unread=true");
     await client.markNotificationsRead({ all: true });
     expect(sent[1]!.body).toEqual({ all: true });
@@ -98,7 +98,7 @@ describe("B12 client methods", () => {
 
   it("chat: send auto-generates a clientMessageId, edit and delete hit the right paths", async () => {
     const { network, sent } = scripted([
-      ok({ items: [], nextCursor: null }),
+      ok([]),
       ok({ id: "msg_x", documentId: "doc_1", authorId: "u1", body: "hi", mentions: [], createdAt: "2026-01-01T00:00:00Z", editedAt: null, deletedAt: null }),
       ok({ id: "msg_x", documentId: "doc_1", authorId: "u1", body: "fixed", mentions: [], createdAt: "2026-01-01T00:00:00Z", editedAt: "2026-01-01T00:01:00Z", deletedAt: null }),
       ok({ deletedAt: "2026-01-01T00:02:00Z" }),
@@ -117,7 +117,7 @@ describe("B12 client methods", () => {
   });
 
   it("activity: kinds join as a comma-separated query string", async () => {
-    const { network, sent } = scripted([ok({ items: [], nextCursor: null }), ok({ items: [], nextCursor: null })]);
+    const { network, sent } = scripted([ok([]), ok([])]);
     const client = clientFor(network);
     await client.listDocumentActivity("doc_1", { kinds: ["document.created", "snapshot.created"] });
     expect(pathOf(sent[0]!)).toBe("/documents/doc_1/activity?kinds=document.created%2Csnapshot.created");
@@ -201,8 +201,8 @@ describe("B12 hooks", () => {
   it("useNotificationPrefs, useNotifications, useUnreadCount", async () => {
     const { network } = scripted([
       ok({ kinds: {}, writingReminderTime: null }),
-      ok({ items: [], nextCursor: null }, 200, { "x-unread-count": "5" }),
-      ok({ items: [], nextCursor: null }, 200, { "x-unread-count": "5" }),
+      ok([], 200, { "x-unread-count": "5" }),
+      ok([], 200, { "x-unread-count": "5" }),
     ]);
     const { wrapper } = setup(network);
     const prefs = renderHook(() => useNotificationPrefs(), { wrapper });
@@ -221,7 +221,7 @@ describe("B12 hooks", () => {
         const path = new URL(req.url).pathname;
         if (req.method === "GET" && path.endsWith("/chat")) {
           listCalls++;
-          return ok({ items: listCalls > 1 ? [msg] : [], nextCursor: null });
+          return ok(listCalls > 1 ? [msg] : []);
         }
         if (req.method === "POST" && path.endsWith("/chat")) return ok(msg, 201);
         if (req.method === "PATCH") return ok({ ...msg, body: "fixed", editedAt: "2026-01-01T00:01:00Z" });
@@ -230,10 +230,10 @@ describe("B12 hooks", () => {
     };
     const { wrapper } = setup(network);
     const list = renderHook(() => useChat("doc_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(0));
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(0));
     const send = renderHook(() => useSendChatMessage("doc_1"), { wrapper });
     await act(async () => void (await send.result.current.mutateAsync({ body: "hi" })));
-    await waitFor(() => expect(list.result.current.data?.items).toHaveLength(1)); // invalidated and refetched
+    await waitFor(() => expect(list.result.current.data?.data!).toHaveLength(1)); // invalidated and refetched
     const edit = renderHook(() => useEditChatMessage("doc_1"), { wrapper });
     await act(async () => void (await edit.result.current.mutateAsync({ mid: "msg_1", body: { body: "fixed" } })));
     const del = renderHook(() => useDeleteChatMessage("doc_1"), { wrapper });
@@ -243,12 +243,12 @@ describe("B12 hooks", () => {
 
   it("useActivity and useWorkspaceActivity", async () => {
     const { network } = scripted([
-      ok({ items: [{ id: "act_1", kind: "document.created", actorId: "u1", actorKind: "user", summary: { i18nKey: "x" }, targetIds: [], createdAt: "2026-01-01T00:00:00Z" }], nextCursor: null }),
-      ok({ items: [], nextCursor: null }),
+      ok([{ id: "act_1", kind: "document.created", actorId: "u1", actorKind: "user", summary: { i18nKey: "x" }, targetIds: [], createdAt: "2026-01-01T00:00:00Z" }]),
+      ok([]),
     ]);
     const { wrapper } = setup(network);
     const doc = renderHook(() => useActivity("doc_1"), { wrapper });
-    await waitFor(() => expect(doc.result.current.data?.items).toHaveLength(1));
+    await waitFor(() => expect(doc.result.current.data?.data!).toHaveLength(1));
     const ws = renderHook(() => useWorkspaceActivity("ws_1"), { wrapper });
     await waitFor(() => expect(ws.result.current.isSuccess).toBe(true));
   });
