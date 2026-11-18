@@ -59,15 +59,15 @@ describe("typed errors", () => {
   it("a 403 with details.requiredRole is a RoleInsufficientError (still an ApiError); one without is a plain ApiError", async () => {
     const { client } = fake(r =>
       r.path.endsWith("/commands")
-        ? fail(403, "FORBIDDEN", { permission: "document.edit", requiredRole: "writer", role: "viewer" })
+        ? fail(403, "FORBIDDEN", { permission: "document.edit", requiredRole: "manager", role: "member" })
         : fail(403, "FORBIDDEN")
     );
     const e = await client().applyCommands("doc_1", { commands: [], baseEpoch: 0 }).catch(x => x);
     expect(e).toBeInstanceOf(RoleInsufficientError);
     expect(e).toBeInstanceOf(ApiError);
     expect(isRoleInsufficient(e)).toBe(true);
-    expect(e.requiredRole).toBe("writer");
-    expect(e.role).toBe("viewer");
+    expect(e.requiredRole).toBe("manager");
+    expect(e.role).toBe("member");
     expect(e.permission).toBe("document.edit");
     expect(e.code).toBe("FORBIDDEN");
     expect(e.status).toBe(403);
@@ -129,9 +129,9 @@ describe("methods and dispatchers", () => {
   it("map onto the routes", async () => {
     const { calls, client } = fake();
     const c = client();
-    await c.inviteMember({ type: "entity", id: "ws_1" }, { email: "a@b.co", role: "viewer" });
-    await c.inviteMember({ type: "project", id: "prj_1" }, { email: "a@b.co", role: "writer" });
-    await c.inviteMember({ type: "document", id: "doc_1" }, { email: "a@b.co", role: "commenter" });
+    await c.inviteMember({ type: "entity", id: "ws_1" }, { email: "a@b.co", role: "member" });
+    await c.inviteMember({ type: "project", id: "prj_1" }, { email: "a@b.co", role: "manager" });
+    await c.inviteMember({ type: "document", id: "doc_1" }, { email: "a@b.co", role: "member" });
     await c.createShareLink({ type: "document", id: "doc_1" }, { access: "view" });
     await c.createShareLink({ type: "project", id: "prj_1" }, { access: "comment", generalAccess: "restricted" });
     await c.createShareLink({ type: "snapshot", id: "snap_1" }, { access: "view" });
@@ -141,9 +141,9 @@ describe("methods and dispatchers", () => {
     await c.listGrants({ type: "project", id: "prj_1" });
     await c.updateShareLink("shl_1", { clearPassword: true });
     await c.revokeShareLink("shl_1");
-    await c.updateGrant("grt_1", { role: "writer" });
+    await c.updateGrant("grt_1", { role: "manager" });
     await c.removeGrant("grt_1");
-    await c.updateMemberRole("ws_1", "u2", "admin");
+    await c.updateMemberRole("ws_1", "u2", "manager");
     await c.removeMember("ws_1", "u2");
     await c.deleteManagedEntity("ws_1", "Name");
     await c.transferManagedEntity("ws_1", "u2");
@@ -202,7 +202,7 @@ describe("sharing hooks", () => {
   };
 
   it("useMembers loads, and changing a role refetches the member list", async () => {
-    let role = "viewer";
+    let role = "member";
     const { calls, wrapper } = setup(r => {
       if (r.method === "PATCH") {
         role = (r.body as { role: string }).role;
@@ -211,10 +211,10 @@ describe("sharing hooks", () => {
       return ok([{ userId: "u2", role }]);
     });
     const list = renderHook(() => useMembers("ws_1"), { wrapper });
-    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("viewer"));
+    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("member"));
     const upd = renderHook(() => useUpdateMemberRole("ws_1"), { wrapper });
-    upd.result.current.mutate({ uid: "u2", role: "writer" });
-    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("writer"));
+    upd.result.current.mutate({ uid: "u2", role: "manager" });
+    await waitFor(() => expect(list.result.current.data?.data![0]!.role).toBe("manager"));
     expect(calls.filter(c => c.method === "GET" && c.path === "/entities/ws_1/members").length).toBeGreaterThanOrEqual(2);
     // removing invalidates the sharing family too
     const rm = renderHook(() => useRemoveMember("ws_1"), { wrapper });

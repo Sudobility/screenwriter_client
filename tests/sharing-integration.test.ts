@@ -111,19 +111,19 @@ describe("B8 against the real API", () => {
 
   it("invite -> accept -> the viewer cannot edit (RoleInsufficientError names the role that can) -> upgrade -> can", async () => {
     const email = `${U("viewer")}@x.co`;
-    const inv = await owner.inviteMember({ type: "entity", id: wid }, { email, role: "viewer" });
-    expect(inv).toMatchObject({ status: "pending", role: "viewer", targetName: "Room" });
+    const inv = await owner.inviteMember({ type: "entity", id: wid }, { email, role: "member" });
+    expect(inv).toMatchObject({ status: "pending", role: "member", targetName: "Room" });
     expect(JSON.stringify(inv)).not.toContain(inviteToken(email, "entity"));
     expect((await viewer.listMyInvitations()).map(i => i.id)).toContain(inv.id);
     await expect(stranger.acceptInvitation(inviteToken(email, "entity"))).rejects.toMatchObject({ code: "EMAIL_MISMATCH" });
     expect(await viewer.acceptInvitation(inviteToken(email, "entity"))).toEqual({ entityId: wid });
     await expect(viewer.acceptInvitation(inviteToken(email, "entity"))).rejects.toMatchObject({ code: "INVITATION_CLOSED", status: 410 });
 
-    expect((await viewer.getDocument(did)).role).toBe("viewer");
+    expect((await viewer.getDocument(did)).role).toBe("member");
     const err = await viewer.applyCommands(did, cmd("nope")).catch(e => e);
     expect(err).toBeInstanceOf(RoleInsufficientError);
-    expect(err.requiredRole).toBe("writer");
-    expect(err.role).toBe("viewer");
+    expect(err.requiredRole).toBe("manager");
+    expect(err.role).toBe("member");
     // a stranger sees nothing: 404, never 403
     const nf = await stranger.getDocument(did).catch(e => e);
     expect(nf).toBeInstanceOf(ApiError);
@@ -131,10 +131,10 @@ describe("B8 against the real API", () => {
     expect(nf.status).toBe(404);
 
     const members = await owner.listMembers(wid);
-    expect(members.data!.map(m => [m.userId, m.role])).toEqual([[U("owner"), "owner"], [U("viewer"), "viewer"]]);
-    expect((await owner.updateMemberRole(wid, U("viewer"), "writer")).role).toBe("writer");
+    expect(members.data!.map(m => [m.userId, m.role])).toEqual([[U("owner"), "owner"], [U("viewer"), "member"]]);
+    expect((await owner.updateMemberRole(wid, U("viewer"), "manager")).role).toBe("manager");
     expect((await viewer.applyCommands(did, cmd("now allowed"))).applied).toBe(1);
-    await owner.updateMemberRole(wid, U("viewer"), "viewer");
+    await owner.updateMemberRole(wid, U("viewer"), "member");
   });
 
   it("a role change reaches an open sync session within 5 s (roleChanged), and losing access ends it", async () => {
@@ -147,8 +147,8 @@ describe("B8 against the real API", () => {
     const sub = sync.subscribe(did, ydoc, { epoch: 0 });
     await waitFor("synced", () => sub.status === "synced");
     const t0 = Date.now();
-    await owner.updateMemberRole(wid, U("viewer"), "writer");
-    await waitFor("roleChanged writer", () => roles.includes("writer"), 5000);
+    await owner.updateMemberRole(wid, U("viewer"), "manager");
+    await waitFor("roleChanged manager", () => roles.includes("manager"), 5000);
     expect(Date.now() - t0).toBeLessThan(5000);
     await owner.removeMember(wid, U("viewer"));
     await waitFor("roleChanged none", () => roles.includes("none"), 5000);
@@ -157,7 +157,7 @@ describe("B8 against the real API", () => {
     sync.disconnect();
     // re-add for the tests below
     const email = `${U("viewer")}@x.co`;
-    await owner.inviteMember({ type: "entity", id: wid }, { email, role: "viewer" });
+    await owner.inviteMember({ type: "entity", id: wid }, { email, role: "member" });
     await viewer.acceptInvitation(inviteToken(email, "entity"));
   });
 
@@ -212,7 +212,7 @@ describe("B8 against the real API", () => {
     expect(off.status).toBe(403);
     // add the stranger to the access list (an invitation), same URL
     const email = `${U("stranger")}@x.co`;
-    await owner.inviteMember({ type: "document", id: did }, { email, role: "viewer" });
+    await owner.inviteMember({ type: "document", id: did }, { email, role: "member" });
     await stranger.acceptInvitation(inviteToken(email, "document"));
     expect((await stranger.getSharedState(link.token)).state.byteLength).toBeGreaterThan(0);
     expect((await stranger.listSharedWithMe()).data!.map(i => i.id)).toContain(did);
@@ -252,7 +252,7 @@ describe("B8 against the real API", () => {
     const w = await owner.createManagedEntity({ name: "Temp" });
     expect(await owner.getManagedEntityUsage(w.id)).toMatchObject({ documentCount: 0, assetCount: 0 });
     const email = `${U("viewer")}@x.co`;
-    await owner.inviteMember({ type: "entity", id: w.id }, { email, role: "admin" });
+    await owner.inviteMember({ type: "entity", id: w.id }, { email, role: "manager" });
     await viewer.acceptInvitation(inviteToken(email, "entity"));
     const csv = await owner.downloadEntityAudit(w.id);
     expect(csv.split("\r\n")[0]).toBe("created_at,actor,action,target_type,target_id,ip");

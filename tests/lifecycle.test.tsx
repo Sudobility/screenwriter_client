@@ -224,7 +224,7 @@ describe("B14 client methods hit the documented routes", () => {
 
 describe("setWorkspaceDefaults", () => {
   it("reads, merges per key, PUTs the whole document with the token; null resets a key", async () => {
-    const { network, calls } = fake(c => (c.method === "GET" ? defaults({ tagCategories: [{ key: "a" }], worksheets: [{ id: "w" }], defaultProjectRole: "writer" }) : defaults({ ...(c.body as object), updatedAt: T1 })));
+    const { network, calls } = fake(c => (c.method === "GET" ? defaults({ tagCategories: [{ key: "a" }], worksheets: [{ id: "w" }], defaultProjectRole: "manager" }) : defaults({ ...(c.body as object), updatedAt: T1 })));
     const { client } = setup(network);
     const r = await client.setWorkspaceDefaults("ws_1", { noteTypes: [{ key: "todo" }], worksheets: null });
     expect(calls.map(c => `${c.method} ${c.path}`)).toEqual(["GET /entities/ws_1/defaults", "PUT /entities/ws_1/defaults"]);
@@ -232,7 +232,7 @@ describe("setWorkspaceDefaults", () => {
       tagCategories: [{ key: "a" }],
       revisionColourSets: [],
       noteTypes: [{ key: "todo" }],
-      defaultProjectRole: "writer",
+      defaultProjectRole: "manager",
       baseUpdatedAt: T0,
     });
     expect(r.updatedAt).toBe(T1);
@@ -362,7 +362,7 @@ describe("hooks", () => {
 
   it("workspace defaults: the cached copy is the base of the next write and the result replaces it", async () => {
     let put = 0;
-    const { network, calls } = fake(c => (c.method === "GET" ? defaults({ defaultProjectRole: "viewer" }) : defaults({ ...(c.body as object), updatedAt: ++put === 1 ? T1 : T2 })));
+    const { network, calls } = fake(c => (c.method === "GET" ? defaults({ defaultProjectRole: "member" }) : defaults({ ...(c.body as object), updatedAt: ++put === 1 ? T1 : T2 })));
     const { qc, wrapper } = setup(network);
     const read = renderHook(() => useWorkspaceDefaults("ws_1"), { wrapper });
     await waitFor(() => expect(read.result.current.isSuccess).toBe(true));
@@ -375,7 +375,7 @@ describe("hooks", () => {
     await act(async () => {
       await set.result.current.mutateAsync({ worksheets: [{ id: "w" }] });
     });
-    expect(calls.filter(c => c.method === "PUT")[1]!.body).toMatchObject({ baseUpdatedAt: T1, noteTypes: [{ key: "a" }], worksheets: [{ id: "w" }], defaultProjectRole: "viewer" });
+    expect(calls.filter(c => c.method === "PUT")[1]!.body).toMatchObject({ baseUpdatedAt: T1, noteTypes: [{ key: "a" }], worksheets: [{ id: "w" }], defaultProjectRole: "member" });
   });
 
   it("contacts are keyed per workspace and filter", async () => {

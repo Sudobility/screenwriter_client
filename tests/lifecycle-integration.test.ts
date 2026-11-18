@@ -255,9 +255,9 @@ describe("B14 against the real API", () => {
     const d0 = await admin.getWorkspaceDefaults(wid);
     const ownerDevice = mk(U("owner"));
     const first = await admin.setWorkspaceDefaults(wid, { noteTypes: [{ key: "todo" }] }, d0);
-    const merged = await ownerDevice.setWorkspaceDefaults(wid, { worksheets: [{ id: "w1" }], defaultProjectRole: "commenter" }, d0); // stale base
+    const merged = await ownerDevice.setWorkspaceDefaults(wid, { worksheets: [{ id: "w1" }], defaultProjectRole: "member" }, d0); // stale base
     expect(merged.noteTypes).toEqual([{ key: "todo" }]); // the other device's write survived
-    expect(merged).toMatchObject({ worksheets: [{ id: "w1" }], defaultProjectRole: "commenter" });
+    expect(merged).toMatchObject({ worksheets: [{ id: "w1" }], defaultProjectRole: "member" });
     expect(Date.parse(merged.updatedAt)).toBeGreaterThan(Date.parse(first.updatedAt));
     await expect(writer.setWorkspaceDefaults(wid, { noteTypes: [] })).rejects.toMatchObject({ status: 403 });
 
