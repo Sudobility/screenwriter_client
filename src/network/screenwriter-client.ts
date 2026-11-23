@@ -117,6 +117,26 @@ import {
   type SceneSummariesResponse,
   type SuggestNoteFixRequest,
   type SuggestNoteFixResult,
+  type LoglineSynopsisRequest,
+  type LoglineSynopsisResult,
+  type TensionCurveRequest,
+  type TensionCurveResult,
+  type ScriptBreakdownRequest,
+  type ScriptBreakdownResult,
+  type RevisionDiffRequest,
+  type RevisionDiffResult,
+  type AssistantRequest,
+  type AssistantResult,
+  type TonePassRequest,
+  type TonePassResult,
+  type LineAlternatesRequest,
+  type LineAlternatesResult,
+  type VoiceProfileRequest,
+  type VoiceProfileResult,
+  type CharacterInterviewRequest,
+  type CharacterInterviewResult,
+  type AgentActRequest,
+  type AgentActResult,
   type GenerateScriptRequest,
   type GenerateScriptResult,
   type PolishCharacterDialogueRequest,
@@ -1639,7 +1659,12 @@ export class ScreenwriterClient {
     query: {
       sceneId?: string;
       type?: string;
-      status?: "open" | "resolved";
+      status?: NoteSummary["status"];
+      /** Comment author-source filter (writer | member | ai). */
+      origin?: NoteSummary["commentSource"];
+      category?: string;
+      /** Only active comments (pending/todo). */
+      visible?: boolean;
       source?: string;
     } = {},
   ) {
@@ -3031,6 +3056,101 @@ export class ScreenwriterClient {
       body,
     );
   }
+  /** Logline, genre, synopsis and treatment generated from the whole (serialized) script. */
+  loglineSynopsis(body: LoglineSynopsisRequest) {
+    return this.json<AiActionResponse<LoglineSynopsisResult>>(
+      "POST",
+      "/ai/logline-synopsis",
+      undefined,
+      body,
+    );
+  }
+  /** Per-scene dramatic intensity (1-5) for the tension curve. */
+  tensionCurve(body: TensionCurveRequest) {
+    return this.json<AiActionResponse<TensionCurveResult>>(
+      "POST",
+      "/ai/tension-curve",
+      undefined,
+      body,
+    );
+  }
+  /** Per-scene AD breakdown: production elements grouped by category. */
+  scriptBreakdown(body: ScriptBreakdownRequest) {
+    return this.json<AiActionResponse<ScriptBreakdownResult>>(
+      "POST",
+      "/ai/script-breakdown",
+      undefined,
+      body,
+    );
+  }
+  /** Story-level change summary between two serialized script versions (e.g. a snapshot and the current script). */
+  revisionDiff(body: RevisionDiffRequest) {
+    return this.json<AiActionResponse<RevisionDiffResult>>(
+      "POST",
+      "/ai/revision-diff",
+      undefined,
+      body,
+    );
+  }
+  /** A read-only question-answering assistant grounded in the script, with scene references. */
+  assistant(body: AssistantRequest) {
+    return this.json<AiActionResponse<AssistantResult>>(
+      "POST",
+      "/ai/assistant",
+      undefined,
+      body,
+    );
+  }
+
+  /** Rewrite a scene to shift its tone; returns per-element edits the app applies like a note fix. */
+  tonePass(body: TonePassRequest) {
+    return this.json<AiActionResponse<TonePassResult>>(
+      "POST",
+      "/ai/tone-pass",
+      undefined,
+      body,
+    );
+  }
+
+  /** Several rewrites of one line; the caller replaces the line with the one the writer picks. */
+  lineAlternates(body: LineAlternatesRequest) {
+    return this.json<AiActionResponse<LineAlternatesResult>>(
+      "POST",
+      "/ai/line-alternates",
+      undefined,
+      body,
+    );
+  }
+
+  /** Describe how a character speaks, from their own lines. The app stores it on the character entity. */
+  voiceProfile(body: VoiceProfileRequest) {
+    return this.json<AiActionResponse<VoiceProfileResult>>(
+      "POST",
+      "/ai/voice-profile",
+      undefined,
+      body,
+    );
+  }
+
+  /** Chat with a character, role-played in their voice and grounded in their lines. Read-only. */
+  characterInterview(body: CharacterInterviewRequest) {
+    return this.json<AiActionResponse<CharacterInterviewResult>>(
+      "POST",
+      "/ai/character-interview",
+      undefined,
+      body,
+    );
+  }
+
+  /** Turn an instruction into a plan plus typed operations the app applies only after the writer confirms each. */
+  agentAct(body: AgentActRequest) {
+    return this.json<AiActionResponse<AgentActResult>>(
+      "POST",
+      "/ai/agent-act",
+      undefined,
+      body,
+    );
+  }
 
   selectedEntityId(): string | undefined {
     return this.opts.getSelectedEntityId?.() ?? undefined;
@@ -3568,6 +3688,16 @@ export const API_ROUTE_METHODS: Record<
   aiSmartPastePlots: "smartPastePlots",
   aiSmartPasteScript: "smartPasteScript",
   aiSuggestNoteFix: "suggestNoteFix",
+  aiLoglineSynopsis: "loglineSynopsis",
+  aiTensionCurve: "tensionCurve",
+  aiScriptBreakdown: "scriptBreakdown",
+  aiRevisionDiff: "revisionDiff",
+  aiAssistant: "assistant",
+  aiTonePass: "tonePass",
+  aiLineAlternates: "lineAlternates",
+  aiVoiceProfile: "voiceProfile",
+  aiCharacterInterview: "characterInterview",
+  aiAgentAct: "agentAct",
   aiJobCreate: "startAiJob",
   aiJobsList: "listAiJobs",
   aiSceneSummaries: "listSceneSummaries",

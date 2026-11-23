@@ -76,7 +76,7 @@ describe("B10 client methods hit the documented routes", () => {
     await client.getEntityDialogue("doc_1", "ent_1", { sceneIds: ["el_a", "el_b"] });
     await client.listTagCategories("doc_1");
     await client.listTags("doc_1", { sceneId: "el_s", categoryId: "cat_1", entityId: "ent_1" });
-    await client.listNotes("doc_1", { status: "open", type: "General" });
+    await client.listNotes("doc_1", { status: "pending", type: "General" });
     await client.listBeats("doc_1");
     await client.getBin("doc_1");
     await client.listRevisions("doc_1");
@@ -92,7 +92,7 @@ describe("B10 client methods hit the documented routes", () => {
       ["GET", `${B}/entities/ent_1/dialogue`, { sceneIds: "el_a,el_b" }],
       ["GET", `${B}/tag-categories`, {}],
       ["GET", `${B}/tags`, { sceneId: "el_s", categoryId: "cat_1", entityId: "ent_1" }],
-      ["GET", `${B}/notes`, { status: "open", type: "General" }],
+      ["GET", `${B}/notes`, { status: "pending", type: "General" }],
       ["GET", `${B}/beats`, {}],
       ["GET", `${B}/bin`, {}],
       ["GET", `${B}/revisions`, {}],
@@ -278,7 +278,7 @@ describe("hooks", () => {
     });
     expect(isReportJob(created as never)).toBe(true);
     expect(renderHook(() => useReport("doc_1", undefined), { wrapper }).result.current.fetchStatus).toBe("idle");
-    const notes = renderHook(() => useNotes("doc_1", { status: "open" }), { wrapper });
+    const notes = renderHook(() => useNotes("doc_1", { status: "pending" }), { wrapper });
     const beats = renderHook(() => useBeats("doc_1"), { wrapper });
     await waitFor(() => expect(notes.result.current.data).toEqual([]));
     await waitFor(() => expect(beats.result.current.data).toEqual([]));

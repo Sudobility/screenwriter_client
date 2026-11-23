@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { EntityListQuery } from "@sudobility/screenwriter_types";
+import type { EntityListQuery, NoteSummary } from "@sudobility/screenwriter_types";
 import { useScreenwriterClient } from "./client-context";
 import { STALE_TIMES } from "./query-config";
 import { queryKeys } from "./query-keys";
@@ -76,7 +76,7 @@ export function useTags(did: string | undefined, query: { sceneId?: string; cate
   });
 }
 
-export function useNotes(did: string | undefined, query: { sceneId?: string; type?: string; status?: "open" | "resolved"; source?: string } = {}) {
+export function useNotes(did: string | undefined, query: { sceneId?: string; type?: string; status?: NoteSummary["status"]; origin?: NoteSummary["commentSource"]; category?: string; visible?: boolean; source?: string } = {}) {
   const client = useScreenwriterClient();
   return useQuery({
     queryKey: queryKeys.notes(did ?? "", query),
