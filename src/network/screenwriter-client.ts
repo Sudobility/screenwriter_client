@@ -137,6 +137,8 @@ import {
   type CharacterInterviewResult,
   type AgentActRequest,
   type AgentActResult,
+  type StoryboardFromSceneRequest,
+  type StoryboardFromSceneResult,
   type GenerateScriptRequest,
   type GenerateScriptResult,
   type PolishCharacterDialogueRequest,
@@ -3151,6 +3153,15 @@ export class ScreenwriterClient {
       body,
     );
   }
+  /** One scene -> a line-art storyboard: a short title, a detailed description and 1..N shot descriptions. */
+  storyboardFromScene(body: StoryboardFromSceneRequest) {
+    return this.json<AiActionResponse<StoryboardFromSceneResult>>(
+      "POST",
+      "/ai/storyboard-from-scene",
+      undefined,
+      body,
+    );
+  }
 
   selectedEntityId(): string | undefined {
     return this.opts.getSelectedEntityId?.() ?? undefined;
@@ -3698,6 +3709,7 @@ export const API_ROUTE_METHODS: Record<
   aiVoiceProfile: "voiceProfile",
   aiCharacterInterview: "characterInterview",
   aiAgentAct: "agentAct",
+  aiStoryboardFromScene: "storyboardFromScene",
   aiJobCreate: "startAiJob",
   aiJobsList: "listAiJobs",
   aiSceneSummaries: "listSceneSummaries",
