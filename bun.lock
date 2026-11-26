@@ -5,7 +5,7 @@
     "": {
       "name": "@sudobility/screenwriter_client",
       "dependencies": {
-        "@sudobility/screenwriter_types": "^0.1.27",
+        "@sudobility/screenwriter_types": "^0.1.28",
         "@sudobility/writing_core": "^0.1.10",
         "yjs": "~13.6.33",
       },
@@ -76,7 +76,7 @@
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
-    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.27", "https://npm.pkg.github.com/download/@sudobility/screenwriter_types/0.1.27/c565328c0e9eda8b414fa25dbe6760fad2e4c370", { "dependencies": { "@sudobility/types": "^1.11.2", "@sudobility/writing_core": "^0.1.10", "lib0": "0.2.117", "zod": "~4.6.5" } }, "sha512-aW+22bs8RwlYMDkdjNKch5dvlvenC7oaC/zAcoHwbAQVQQMlB2HGcIb7ZFx9m6oB2p6oCrGvG6VpKnTlPh4AHA=="],
+    "@sudobility/screenwriter_types": ["@sudobility/screenwriter_types@0.1.28", "https://npm.pkg.github.com/download/@sudobility/screenwriter_types/0.1.28/086c3d2cad7d76d0a0b492c29e9236ce6995565a", { "dependencies": { "@sudobility/types": "^1.11.2", "@sudobility/writing_core": "^0.1.10", "lib0": "0.2.117", "zod": "~4.6.5" } }, "sha512-HlVQVRti9eSSCq+Rr7EXTaTZ4iuyeuiD9Er8hc9i6ew5jl6HzJUjeSgSkNd8Gv4s+JjQKmG/XvGpTPAB4wcQFA=="],
 
     "@sudobility/types": ["@sudobility/types@1.11.2", "https://npm.pkg.github.com/download/@sudobility/types/1.11.2/d6d0b1809eaca31ef737646032cc431111b58a49", {}, "sha512-gg+bPtcOGNETDt9oNdjcn7R22EfFWmRxMOhj0ADwulBJ9tJ4NaMaXkrTtkWF+figSDZqmD9a9kodgOHseq8gsQ=="],
 
